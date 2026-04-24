@@ -133,8 +133,8 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
                 iptables = container "iptables NAT" "Masquerades lab egress from 192.168.100.0/24 through eth1 on the home network" "Kernel netfilter" {
                     tags "Kernel,Layer-Security"
                 }
-                ufw = container "ufw" "Per-host firewall policy across every lab VM" "Kernel netfilter" {
-                    tags "Kernel,Planned,Layer-Security"
+                ufw = container "ufw" "Per-host firewall policy on every lab VM. Default deny inbound, allow outbound, trust lab subnet and tailnet. Edge openings (DNS + HTTP) on lab-gateway." "Kernel netfilter" {
+                    tags "Kernel,Layer-Security"
                 }
             }
 

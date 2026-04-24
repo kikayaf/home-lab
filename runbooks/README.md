@@ -11,7 +11,7 @@ These are the authoritative "how it actually happened" record. Architecture inte
 | [`stage-2-lab-gateway.md`](./stage-2-lab-gateway.md) | Steps 1-4: promote `lab-gateway` to the real egress router (Tailscale, dual-homing, iptables NAT, fleet default-gateway flip) | Done |
 | [`stage-2-step-5-coredns.md`](./stage-2-step-5-coredns.md) | Step 5: CoreDNS on `lab-gateway` for `*.lab.local` resolution and Tailscale Split DNS | Done |
 | [`stage-2-step-6-nginx.md`](./stage-2-step-6-nginx.md) | Step 6: nginx reverse proxy on `lab-gateway` with DNS wildcard for unknown `*.lab.local` | Done |
-| `stage-2-step-7-ufw.md` (planned) | Step 7: host firewall policy on every lab VM | Not started |
+| [`stage-2-step-7-ufw.md`](./stage-2-step-7-ufw.md) | Step 7: host firewall policy on every lab VM | Done |
 
 Stage 1 (provisioning the 8-VM fleet from a template) is automated end to end in [`../scripts/`](../scripts/) and doesn't need a runbook, the scripts are the runbook.
 

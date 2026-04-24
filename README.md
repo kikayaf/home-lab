@@ -121,9 +121,9 @@ Stage 2 is additive on top of stage 1, no rebuild required. Progress is tracked 
 | 4 | Fleet default gateway flipped from `.1` to `.201` | Done |
 | 5 | CoreDNS for `*.lab.local` + Tailscale Split DNS | Done |
 | 6 | nginx reverse proxy for internal lab services | Done |
-| 7 | ufw firewall policy on every VM | Planned |
+| 7 | ufw firewall policy on every VM | Done |
 
-Current state, in one sentence: every lab VM's internet traffic flows through `lab-gateway`, the whole lab is reachable via Tailscale from anywhere, `*.lab.local` resolves correctly from every lab VM and tailnet device, and lab-gateway is running an nginx reverse proxy ready to dispatch service traffic by Host header.
+**Stage 2 is complete.** Every lab VM's internet traffic flows through `lab-gateway`, the whole lab is reachable via Tailscale from anywhere, `*.lab.local` resolves correctly from every lab VM and tailnet device, `lab-gateway` runs an nginx reverse proxy ready to dispatch service traffic by Host header, and every VM has a default-deny host firewall. The lab is ready for stage 3 workloads (k3s, postgres, observability, and so on).
 
 Stage 2 also unlocks the lab documenting itself. Structurizr Lite runs as a Docker container on `lab-platform-eng` and serves the architecture workspace at `arch.lab.local` through nginx. Later, scheduled jobs on the Windows host and k3s control plane feed live state (Hyper-V inventory, `kubectl get all -A`, Docker ps output) back into the DSL, so the diagrams reflect reality without manual edits. See [`architecture/README.md`](./architecture/README.md#self-hosted-and-self-documenting-planned) for the plan.
 
