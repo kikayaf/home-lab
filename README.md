@@ -138,8 +138,9 @@ Landing actual services on top of the platform. Progress:
 | 3.8 | code-server + Tailscale Funnel for browser-based lab access | Done |
 | 3.5 | PostgreSQL + pgvector on `lab-datastore` | Done |
 | 3.6 | MinIO (S3) on `lab-datastore` | Done |
-| later | Redis on `lab-datastore` | Planned |
+| 3.7 | Redis on `lab-datastore` | Done |
 | later | Vaultwarden (self-hosted password vault) | Planned |
+| later | restic backup automation | Planned |
 | later | observability stack on `lab-ai-ops` | Planned |
 | later | Structurizr Lite on `lab-platform-eng` (self-documenting) | Planned |
 | later | Workflow runner on `lab-automation` | Planned |

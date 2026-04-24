@@ -122,6 +122,9 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
                 minio = container "MinIO" "S3-compatible object storage. API at s3.lab.local, console at minio.lab.local. Target for app uploads, Loki chunks, Prometheus long-term metrics, restic backups, model artifacts." "Docker: minio/minio:RELEASE.2025-09-07T16-13-09Z" {
                     tags "Docker,Layer-Data"
                 }
+                redis = container "Redis" "In-memory store on lab-datastore:6379. Cache, session store, rate limiter, pub/sub, simple queue backend. AOF persistence + LRU eviction at 256 MB." "Docker: redis:7-alpine (7.4.8)" {
+                    tags "Docker,Layer-Data"
+                }
                 restic = container "restic" "Encrypted backups of Postgres and critical volumes to MinIO and offsite" "Docker: restic/restic" {
                     tags "Docker,Planned,Layer-Data"
                 }
@@ -195,6 +198,7 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
         // Application → Data
         homeLab.workflows -> homeLab.postgres "Job state" "TCP 5432"
         homeLab.workflows -> homeLab.minio "Artifacts" "S3"
+        homeLab.workflows -> homeLab.redis "Queue + rate limiting" "RESP TCP 6379"
         homeLab.modelServer -> homeLab.minio "Reads models + writes inference logs" "S3"
         homeLab.modelServer -> homeLab.postgres "Request + result metadata" "TCP 5432"
         homeLab.devtools -> homeLab.k3sServer "Applies manifests" "kubectl/API 6443"
@@ -270,6 +274,7 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
                                 tags "ContainerRuntime"
                                 containerInstance homeLab.postgres
                                 containerInstance homeLab.minio
+                                containerInstance homeLab.redis
                                 containerInstance homeLab.restic
                             }
                         }

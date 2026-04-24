@@ -18,6 +18,7 @@ These are the authoritative "how it actually happened" record. Architecture inte
 | [`stage-3-code-server-funnel.md`](./stage-3-code-server-funnel.md) | Stage 3 step 8: code-server on `lab-platform-eng` + Tailscale Funnel for work-PC access | Done |
 | [`stage-3-postgres-pgvector.md`](./stage-3-postgres-pgvector.md) | Stage 3 step 5: PostgreSQL + pgvector on `lab-datastore` | Done |
 | [`stage-3-minio.md`](./stage-3-minio.md) | Stage 3 step 6: MinIO on `lab-datastore` (S3 API + console) | Done |
+| [`stage-3-redis.md`](./stage-3-redis.md) | Stage 3 step 7: Redis on `lab-datastore` | Done |
 
 Stage 1 (provisioning the 8-VM fleet from a template) is automated end to end in [`../scripts/`](../scripts/) and doesn't need a runbook, the scripts are the runbook.
 
