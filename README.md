@@ -143,6 +143,8 @@ Landing actual services on top of the platform. Progress:
 
 Stage 3's foundation is done. End-to-end proven with the `hello.lab.local` smoke test. Every future web workload follows the same pattern (k8s manifest + nginx vhost + reload).
 
+Further additions, tech debt, and "someday maybe" items are tracked in [`BACKLOG.md`](./BACKLOG.md).
+
 Stage 2 also unlocks the lab documenting itself. Structurizr Lite runs as a Docker container on `lab-platform-eng` and serves the architecture workspace at `arch.lab.local` through nginx. Later, scheduled jobs on the Windows host and k3s control plane feed live state (Hyper-V inventory, `kubectl get all -A`, Docker ps output) back into the DSL, so the diagrams reflect reality without manual edits. See [`architecture/README.md`](./architecture/README.md#self-hosted-and-self-documenting-planned) for the plan.
 
 ```mermaid
@@ -223,4 +225,5 @@ Egress path in stage 2: `lab VM → 192.168.100.201 (lab-gateway eth0) → iptab
 - [`architecture/`](./architecture/) · Structurizr DSL (C4 model) source for the enterprise architecture diagrams. Single source of truth: `workspace.dsl`. The Mermaid diagrams in this file are quick-look inline views; Structurizr is the formal architecture package.
 - [`runbooks/`](./runbooks/) · stage-by-stage operational guides. Start with [`stage-2-lab-gateway.md`](./runbooks/stage-2-lab-gateway.md) for how the current gateway + Tailscale setup was done.
 - [`scripts/README.md`](./scripts/README.md) · operational runbook for stage 1: per-script reference, troubleshooting, idempotency rules, how to add/remove/rebuild VMs.
+- [`BACKLOG.md`](./BACKLOG.md) · tracked additions and tech debt. Everything we've discussed but not yet scheduled lives here.
 - [`hyperv-lab-setup.md`](./hyperv-lab-setup.md) · the original longform runbook that predates the scripts folder. Kept for reference; scripts are the source of truth.
