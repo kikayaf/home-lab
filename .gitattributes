@@ -1,0 +1,52 @@
+# =============================================================================
+# Line-ending normalization
+# =============================================================================
+# Windows + Linux mixed repo: be explicit so scripts don't break when cloned
+# on the "other" OS.
+
+# Default: let git auto-detect text, commit with LF in the index
+* text=auto eol=lf
+
+# Windows-native scripts: CRLF on checkout (PowerShell / cmd won't care, but
+# some Windows tools barf on LF)
+*.ps1      text eol=crlf
+*.psm1     text eol=crlf
+*.psd1     text eol=crlf
+*.bat      text eol=crlf
+*.cmd      text eol=crlf
+
+# Unix-native scripts: MUST be LF, bash refuses CRLF
+*.sh       text eol=lf
+*.bash     text eol=lf
+
+# Config / data / docs: LF for portability
+*.yaml     text eol=lf
+*.yml      text eol=lf
+*.json     text eol=lf
+*.md       text eol=lf
+*.markdown text eol=lf
+*.dsl      text eol=lf
+*.conf     text eol=lf
+*.toml     text eol=lf
+*.ini      text eol=crlf
+
+# Binary types: never diff as text
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.svg      text eol=lf
+*.pdf      binary
+*.zip      binary
+*.tar      binary
+*.tar.gz   binary
+*.tgz      binary
+
+# Hypervisor artifacts (should be gitignored anyway, but just in case)
+*.vhdx     binary
+*.vhd      binary
+*.avhdx    binary
+*.iso      binary
+*.vmcx     binary
+*.vmrs     binary
+*.vmgs     binary
