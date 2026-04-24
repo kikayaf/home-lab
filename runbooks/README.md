@@ -15,6 +15,7 @@ These are the authoritative "how it actually happened" record. Architecture inte
 | [`stage-3-k3s-cluster.md`](./stage-3-k3s-cluster.md) | Stage 3 steps 1-2: k3s server on controlplane, agents on node01/node02 | Done |
 | [`stage-3-kubectl-access.md`](./stage-3-kubectl-access.md) | Stage 3 step 3: kubectl from `lab-gateway` and Mac | Done |
 | [`stage-3-smoke-test.md`](./stage-3-smoke-test.md) | Stage 3 step 4: smoke-test workload, end-to-end through nginx + k3s | Done |
+| [`stage-3-code-server-funnel.md`](./stage-3-code-server-funnel.md) | Stage 3 step 8: code-server on `lab-platform-eng` + Tailscale Funnel for work-PC access | Done |
 
 Stage 1 (provisioning the 8-VM fleet from a template) is automated end to end in [`../scripts/`](../scripts/) and doesn't need a runbook, the scripts are the runbook.
 

@@ -135,11 +135,11 @@ Landing actual services on top of the platform. Progress:
 | 3.2 | k3s agents on `lab-k3s-node01` and `lab-k3s-node02` | Done |
 | 3.3 | kubectl access from `lab-gateway` and Mac | Done |
 | 3.4 | Smoke-test workload reachable at `hello.lab.local` | Done |
-| later | postgres + minio on `lab-datastore` | Planned |
+| 3.8 | code-server + Tailscale Funnel for browser-based lab access | Done |
+| later | postgres + minio + redis on `lab-datastore` | Planned |
 | later | observability stack on `lab-ai-ops` | Planned |
 | later | Structurizr Lite on `lab-platform-eng` (self-documenting) | Planned |
 | later | Workflow runner on `lab-automation` | Planned |
-| later | code-server + Tailscale Funnel for browser-based lab access | Planned |
 
 Stage 3's foundation is done. End-to-end proven with the `hello.lab.local` smoke test. Every future web workload follows the same pattern (k8s manifest + nginx vhost + reload).
 

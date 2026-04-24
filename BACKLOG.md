@@ -66,9 +66,59 @@ Services you actually use or demo. Mostly land as k3s Deployments exposed via ng
 | Item | What it is | Trigger | Notes |
 |---|---|---|---|
 | **TLS on nginx** | Self-signed wildcard `*.lab.local`, then Let's Encrypt with DNS-01 | When services start carrying anything non-trivial | Self-signed first (easy), LE later (real cert) |
-| **Cloudflare Tunnel** | Alternative to Tailscale Funnel for public exposure | If Funnel's bandwidth or features limit | Free tier; includes Cloudflare Access for SSO |
 | **Tailscale Serve / Funnel** configs | Specific services exposed via Funnel | When we add work-PC-accessible services | Central in stage 3.8 |
 | **SSH over HTTPS** | sslh multiplexer, or Cloudflare Access SSH | If native SSH from restricted networks is needed | Code-server via Funnel usually removes this need |
+
+### Cloudflare Tunnel + Cloudflare Access (planned upgrade path from Tailscale Funnel)
+
+Stage 3.8 uses Tailscale Funnel to expose `code-server` to the public internet for work-PC access. Long-term, Cloudflare Tunnel is the cleaner answer. This section captures the plan for when we migrate.
+
+**Why migrate**
+
+- `.ts.net` URLs are publicly reachable by anyone who knows the URL; only defense is the service's password.
+- Tailscale ToS technically limits Funnel to light, personal use.
+- Some corporate DNS filtering blocks `*.ts.net`; Cloudflare subdomains on a real domain don't trip the same filters.
+- Only one Funnel URL per tailnet device; scaling to many public services means path-based routing (messy) or multiple tailnet devices.
+- Cloudflare Access gives proper auth (Google SSO, GitHub, email OTP, etc.) in front of every service, individually.
+
+**What "migrate" means in practice**
+
+- **Keep Tailscale as-is**: the VPN mesh, subnet router, Split DNS, Tailscale SSH. None of this changes. Personal-device access to the lab continues to use Tailscale.
+- **Add Cloudflare Tunnel for public exposure**: runs `cloudflared` as a Docker container on `lab-gateway`. Outbound-initiated tunnel to Cloudflare's edge. No inbound ports, no firewall changes. Maps public subdomains of your domain to internal services (`code.example.com → http://192.168.100.208:8080`, `grafana.example.com → http://...`, etc.).
+- **Add Cloudflare Access**: SSO policies per service. Authenticate against a chosen identity provider, get a signed JWT, Cloudflare forwards to the backend. No shared passwords.
+- **Turn off `tailscale funnel`**: the one feature we stop using. `tailscale serve` internal-only stuff stays if we used it.
+
+**What we need before migrating**
+
+- A domain registered at Cloudflare (or moved to Cloudflare DNS). About $10/year for a `.com`, less for TLDs like `.net`, `.io`.
+- A Cloudflare account (free tier is enough).
+- ~30 minutes of setup.
+
+**Architectural effect**
+
+- Edge layer in `architecture/workspace.dsl` gains a `cloudflared` container and a `cloudflareAccess` external system.
+- Operator access paths become:
+  - Personal devices on tailnet: tailnet → lab-gateway → service (unchanged).
+  - Public internet (work PC): public → Cloudflare → Cloudflare Access SSO → Cloudflare Tunnel → cloudflared on lab-gateway → service.
+- Nothing we build in 3.8 with Funnel is wasted; code-server the service doesn't change, only the front door.
+
+**Trigger to move**
+
+Any of:
+
+- Work-PC DNS filtering blocks `*.ts.net`.
+- You decide you want SSO (Google, GitHub, etc.) instead of the code-server password.
+- You want to add a second public-accessible service (Grafana, Structurizr) and don't want to share the Funnel URL.
+- You register a domain for other reasons and it becomes free to wire up.
+
+**Setup summary when we do it**
+
+1. Register a domain and point DNS at Cloudflare.
+2. Deploy `cloudflare/cloudflared:<pinned>` on lab-gateway as a Docker container, authenticate once with `cloudflared tunnel login`.
+3. Create a tunnel, configure ingress rules in `config.yml` mapping public hostnames to internal URLs.
+4. Add DNS records in Cloudflare (automated via `cloudflared tunnel route dns`).
+5. In Cloudflare Zero Trust dashboard, create Access applications and identity providers; set policies per service.
+6. Turn off `tailscale funnel` once the Cloudflare path is verified.
 
 ## Security and hardening
 

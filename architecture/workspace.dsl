@@ -58,7 +58,7 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
             //   internal DNS (coredns), public-facing reverse proxy (nginx).
             // ---------------------------------------------------------------
             group "Edge and Access layer" {
-                tailscale = container "Tailscale" "Subnet router, exposes 192.168.100.0/24 to the tailnet; remote admin SSH" "Go · systemd" {
+                tailscale = container "Tailscale" "Subnet router (exposes 192.168.100.0/24 to the tailnet) + Tailscale SSH + Funnel (publishes selected services to the public internet over HTTPS for work-PC-style access)" "Go · systemd" {
                     tags "Native,Layer-Edge"
                 }
                 coredns = container "CoreDNS" "Authoritative for *.lab.local, forwards the rest to 1.1.1.1 / 8.8.8.8, served via Tailscale Split DNS to the tailnet" "Docker: coredns/coredns:1.11.3" {
@@ -86,6 +86,9 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
                 }
                 structurizr = container "Structurizr Lite" "Self-hosted renderer for this workspace.dsl. Makes the architecture diagrams available at arch.lab.local so the lab documents itself." "Docker: structurizr/lite" {
                     tags "Docker,Planned,Layer-App,SelfDocumenting"
+                }
+                codeServer = container "code-server" "Browser-based VS Code. Internal access at code.lab.local via nginx; public access via Tailscale Funnel at https://lab-gateway.<tail-hash>.ts.net/ for work-PC use when Tailscale can't be installed on the client." "Docker: codercom/code-server:4.95.3" {
+                    tags "Docker,Layer-App"
                 }
             }
 
@@ -178,6 +181,11 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
         homeLab.nginx -> homeLab.minio "Proxies s3.lab.local" "HTTPS"
         homeLab.nginx -> homeLab.structurizr "Proxies arch.lab.local" "HTTPS"
         operator -> homeLab.structurizr "Views lab architecture" "browser"
+
+        // code-server: two access paths, internal via nginx and public via Tailscale Funnel
+        homeLab.nginx -> homeLab.codeServer "Proxies code.lab.local (internal, tailnet-only)" "HTTP"
+        homeLab.tailscale -> homeLab.codeServer "Funnel: public HTTPS -> code-server backend (for work-PC access)" "HTTPS"
+        operator -> homeLab.codeServer "Edits, runs commands, ssh/kubectl into lab via browser" "browser"
         homeLab.coredns -> homeLab.k3sServer "Forwards cluster.local queries" "DNS 53"
 
         // Platform orchestration (internal to platform layer)
@@ -291,6 +299,7 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
                                 tags "ContainerRuntime"
                                 containerInstance homeLab.devtools
                                 containerInstance homeLab.structurizr
+                                containerInstance homeLab.codeServer
                             }
                         }
                     }
