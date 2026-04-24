@@ -61,8 +61,8 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
                 tailscale = container "Tailscale" "Subnet router, exposes 192.168.100.0/24 to the tailnet; remote admin SSH" "Go · systemd" {
                     tags "Native,Layer-Edge"
                 }
-                coredns = container "CoreDNS" "Authoritative DNS for *.lab.local; forwards cluster.local to k3s; caches upstream" "Docker: coredns/coredns" {
-                    tags "Docker,Planned,Layer-Edge"
+                coredns = container "CoreDNS" "Authoritative for *.lab.local, forwards the rest to 1.1.1.1 / 8.8.8.8, served via Tailscale Split DNS to the tailnet" "Docker: coredns/coredns:1.11.3" {
+                    tags "Docker,Layer-Edge"
                 }
                 nginx = container "nginx" "Reverse proxy for internal lab services (*.lab.local → service backends)" "Docker: nginx:alpine" {
                     tags "Docker,Planned,Layer-Edge"

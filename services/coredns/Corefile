@@ -1,0 +1,38 @@
+# =============================================================================
+# CoreDNS Corefile - lab.local authority + upstream forwarder
+# =============================================================================
+# Deployed on lab-gateway (192.168.100.201) as a Docker container.
+#
+# Zone 1: lab.local (authoritative)
+#   Static A/AAAA records for every lab VM. Edit this file when VMs are
+#   added or removed; `reload 5s` picks up changes without restarting the
+#   container.
+#
+# Zone 2: . (everything else)
+#   Forwarded upstream to Cloudflare and Google public resolvers.
+# =============================================================================
+
+lab.local {
+    hosts {
+        192.168.100.201 lab-gateway.lab.local
+        192.168.100.202 lab-k3s-controlplane.lab.local
+        192.168.100.203 lab-k3s-node01.lab.local
+        192.168.100.204 lab-k3s-node02.lab.local
+        192.168.100.205 lab-datastore.lab.local
+        192.168.100.206 lab-ai-ops.lab.local
+        192.168.100.207 lab-automation.lab.local
+        192.168.100.208 lab-platform-eng.lab.local
+        ttl 60
+        reload 5s
+        fallthrough
+    }
+    log
+    errors
+}
+
+. {
+    forward . 1.1.1.1 8.8.8.8
+    cache 300
+    log
+    errors
+}
