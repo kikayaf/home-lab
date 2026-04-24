@@ -116,8 +116,8 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
             //   that apps can be rebuilt freely without data risk.
             // ---------------------------------------------------------------
             group "Data layer" {
-                postgres = container "PostgreSQL" "Primary OLTP store for application data" "Docker: postgres:16" {
-                    tags "Docker,Planned,Layer-Data"
+                postgres = container "PostgreSQL" "Primary OLTP store for application data. Shared instance with one logical database per app. pgvector 0.8.0 extension available for RAG/embeddings workloads." "Docker: pgvector/pgvector:0.8.0-pg16" {
+                    tags "Docker,Layer-Data"
                 }
                 minio = container "MinIO" "S3-compatible object storage for blobs, logs, artifacts" "Docker: minio/minio" {
                     tags "Docker,Planned,Layer-Data"

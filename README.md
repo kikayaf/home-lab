@@ -136,7 +136,9 @@ Landing actual services on top of the platform. Progress:
 | 3.3 | kubectl access from `lab-gateway` and Mac | Done |
 | 3.4 | Smoke-test workload reachable at `hello.lab.local` | Done |
 | 3.8 | code-server + Tailscale Funnel for browser-based lab access | Done |
-| later | postgres + minio + redis on `lab-datastore` | Planned |
+| 3.5 | PostgreSQL + pgvector on `lab-datastore` | Done |
+| later | MinIO on `lab-datastore` | Planned |
+| later | Redis on `lab-datastore` | Planned |
 | later | observability stack on `lab-ai-ops` | Planned |
 | later | Structurizr Lite on `lab-platform-eng` (self-documenting) | Planned |
 | later | Workflow runner on `lab-automation` | Planned |
