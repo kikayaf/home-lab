@@ -1,0 +1,45 @@
+; =============================================================================
+; lab.local zone file
+; =============================================================================
+; Authoritative DNS for the home lab. Loaded by CoreDNS via the `file` plugin.
+;
+; Wildcard note: `* IN A 192.168.100.201` is a DNS wildcard per RFC 1034.
+; It ONLY matches names with no more-specific entry in this zone. So:
+;   lab-datastore.lab.local  -> specific entry (192.168.100.205)
+;   grafana.lab.local        -> wildcard       (192.168.100.201, where nginx routes)
+;
+; When adding a new VM, add a specific line below.
+; When adding a new service that lives behind nginx on lab-gateway, you don't
+; need to touch this file; the wildcard handles it.
+;
+; Bump the serial (YYYYMMDDnn) whenever you edit this file. CoreDNS reloads
+; automatically within a few seconds.
+; =============================================================================
+
+$ORIGIN lab.local.
+$TTL 60
+
+@       IN SOA  ns.lab.local. admin.lab.local. (
+                2026042301 ; serial (YYYYMMDDnn; bump on every edit)
+                7200       ; refresh
+                3600       ; retry
+                1209600    ; expire
+                3600       ; negative cache TTL
+                )
+@       IN NS   ns.lab.local.
+ns      IN A    192.168.100.201
+
+; --- Lab VMs --------------------------------------------------------------
+lab-gateway             IN A 192.168.100.201
+lab-k3s-controlplane    IN A 192.168.100.202
+lab-k3s-node01          IN A 192.168.100.203
+lab-k3s-node02          IN A 192.168.100.204
+lab-datastore           IN A 192.168.100.205
+lab-ai-ops              IN A 192.168.100.206
+lab-automation          IN A 192.168.100.207
+lab-platform-eng        IN A 192.168.100.208
+
+; --- Wildcard for services reverse-proxied by nginx on lab-gateway --------
+; Covers arch.lab.local, grafana.lab.local, s3.lab.local, etc. Overridden by
+; any specific record above.
+*                       IN A 192.168.100.201

@@ -64,8 +64,8 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
                 coredns = container "CoreDNS" "Authoritative for *.lab.local, forwards the rest to 1.1.1.1 / 8.8.8.8, served via Tailscale Split DNS to the tailnet" "Docker: coredns/coredns:1.11.3" {
                     tags "Docker,Layer-Edge"
                 }
-                nginx = container "nginx" "Reverse proxy for internal lab services (*.lab.local → service backends)" "Docker: nginx:alpine" {
-                    tags "Docker,Planned,Layer-Edge"
+                nginx = container "nginx" "Reverse proxy. Dispatches *.lab.local requests to internal service backends by Host header. Catch-all 404 on unknown hosts." "Docker: nginx:1.27-alpine" {
+                    tags "Docker,Layer-Edge"
                 }
             }
 

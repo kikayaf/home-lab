@@ -3,29 +3,19 @@
 # =============================================================================
 # Deployed on lab-gateway (192.168.100.201) as a Docker container.
 #
-# Zone 1: lab.local (authoritative)
-#   Static A/AAAA records for every lab VM. Edit this file when VMs are
-#   added or removed; `reload 5s` picks up changes without restarting the
-#   container.
+# Zone 1: lab.local (authoritative, backed by a zone file)
+#   Specific A records for every lab VM, plus a DNS wildcard that catches
+#   everything else and points it at lab-gateway (where nginx dispatches
+#   by Host header). Per RFC 1034, the wildcard is silently overridden by
+#   any more specific entry in the same zone, so lab-datastore.lab.local
+#   still returns 192.168.100.205, not 192.168.100.201.
 #
 # Zone 2: . (everything else)
 #   Forwarded upstream to Cloudflare and Google public resolvers.
 # =============================================================================
 
 lab.local {
-    hosts {
-        192.168.100.201 lab-gateway.lab.local
-        192.168.100.202 lab-k3s-controlplane.lab.local
-        192.168.100.203 lab-k3s-node01.lab.local
-        192.168.100.204 lab-k3s-node02.lab.local
-        192.168.100.205 lab-datastore.lab.local
-        192.168.100.206 lab-ai-ops.lab.local
-        192.168.100.207 lab-automation.lab.local
-        192.168.100.208 lab-platform-eng.lab.local
-        ttl 60
-        reload 5s
-        fallthrough
-    }
+    file /etc/coredns/zones/lab.local
     log
     errors
 }
