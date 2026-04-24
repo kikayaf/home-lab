@@ -119,8 +119,8 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
                 postgres = container "PostgreSQL" "Primary OLTP store for application data. Shared instance with one logical database per app. pgvector 0.8.0 extension available for RAG/embeddings workloads." "Docker: pgvector/pgvector:0.8.0-pg16" {
                     tags "Docker,Layer-Data"
                 }
-                minio = container "MinIO" "S3-compatible object storage for blobs, logs, artifacts" "Docker: minio/minio" {
-                    tags "Docker,Planned,Layer-Data"
+                minio = container "MinIO" "S3-compatible object storage. API at s3.lab.local, console at minio.lab.local. Target for app uploads, Loki chunks, Prometheus long-term metrics, restic backups, model artifacts." "Docker: minio/minio:RELEASE.2025-09-07T16-13-09Z" {
+                    tags "Docker,Layer-Data"
                 }
                 restic = container "restic" "Encrypted backups of Postgres and critical volumes to MinIO and offsite" "Docker: restic/restic" {
                     tags "Docker,Planned,Layer-Data"
