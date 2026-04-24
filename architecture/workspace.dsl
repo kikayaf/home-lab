@@ -90,6 +90,9 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
                 codeServer = container "code-server" "Browser-based VS Code. Internal access at code.lab.local via nginx; public access via Tailscale Funnel at https://lab-gateway.<tail-hash>.ts.net/ for work-PC use when Tailscale can't be installed on the client." "Docker: codercom/code-server:4.95.3" {
                     tags "Docker,Layer-App"
                 }
+                vaultwarden = container "Vaultwarden" "Self-hosted Bitwarden-compatible password manager for lab credentials. HTTPS at vault.lab.local. Backs onto the existing Postgres (vaultwarden_db) via the shared labnet Docker network." "Docker: vaultwarden/server:1.35.7" {
+                    tags "Docker,Layer-App"
+                }
             }
 
             // ---------------------------------------------------------------
@@ -189,6 +192,12 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
         homeLab.nginx -> homeLab.codeServer "Proxies code.lab.local (internal, tailnet-only)" "HTTP"
         homeLab.tailscale -> homeLab.codeServer "Funnel: public HTTPS -> code-server backend (for work-PC access)" "HTTPS"
         operator -> homeLab.codeServer "Edits, runs commands, ssh/kubectl into lab via browser" "browser"
+
+        // Vaultwarden: accessed via nginx, persists in Postgres
+        homeLab.nginx -> homeLab.vaultwarden "Proxies vault.lab.local (HTTPS)" "HTTPS"
+        homeLab.vaultwarden -> homeLab.postgres "Stores encrypted vault blobs" "TCP 5432 (labnet)"
+        operator -> homeLab.vaultwarden "Stores lab service credentials; browser autofill + mobile + CLI" "Bitwarden clients"
+
         homeLab.coredns -> homeLab.k3sServer "Forwards cluster.local queries" "DNS 53"
 
         // Platform orchestration (internal to platform layer)
@@ -275,6 +284,7 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
                                 containerInstance homeLab.postgres
                                 containerInstance homeLab.minio
                                 containerInstance homeLab.redis
+                                containerInstance homeLab.vaultwarden
                                 containerInstance homeLab.restic
                             }
                         }

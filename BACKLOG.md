@@ -66,7 +66,9 @@ Services you actually use or demo. Mostly land as k3s Deployments exposed via ng
 
 | Item | What it is | Trigger | Notes |
 |---|---|---|---|
-| **TLS on nginx** | Self-signed wildcard `*.lab.local`, then Let's Encrypt with DNS-01 | When services start carrying anything non-trivial | Self-signed first (easy), LE later (real cert) |
+| **TLS on nginx** (done, mkcert wildcard) | Private CA + `*.lab.local` wildcard via mkcert | Done stage 3.10 | Certs valid ~825 days, manual rotation for now |
+| **cert-manager** on k3s | Kubernetes-native cert automation (watches Certificate CRs, issues + rotates) | First k3s workload that wants TLS on an Ingress | Pair with either step-ca internal issuer or ACME DNS-01 external issuer |
+| **step-ca** (Smallstep internal CA) | ACME-compatible internal CA, auto-rotate lab certs | When we want cert-manager to stop touching mkcert and do ACME-style internal | Deploy as k3s StatefulSet; cert-manager points its ClusterIssuer here |
 | **Tailscale Serve / Funnel** configs | Specific services exposed via Funnel | When we add work-PC-accessible services | Central in stage 3.8 |
 | **SSH over HTTPS** | sslh multiplexer, or Cloudflare Access SSH | If native SSH from restricted networks is needed | Code-server via Funnel usually removes this need |
 
@@ -221,3 +223,16 @@ The thing services need at runtime: DB passwords, API keys, TLS certs, GitHub to
 **Recommendation for this lab**: Start with `sops` + `age` for infra-level secrets that fit with git (e.g., deployment configs, env files). Move to OpenBao or Vault only when service-to-service dynamic creds are needed. Not on the critical path yet.
 
 **Trigger to build**: when we have more than 3-4 services with long-lived credentials.
+
+### Certificate management (separate concern)
+
+Different from password/secret management. Certs are files issued by a CA, not passwords; they belong in infrastructure tooling, not in Vaultwarden.
+
+Current state: mkcert wildcard `*.lab.local`, manual rotation, valid for ~825 days. Fine for a small lab with one wildcard.
+
+Future path:
+
+- **cert-manager** (k8s-native) issues and rotates certs for k3s Ingresses and other resources. Add when the first k3s workload needs TLS (Grafana, Structurizr, etc., once they move to k3s Ingress).
+- **step-ca** (Smallstep) pairs with cert-manager as an internal ACME CA. Replaces the manual mkcert flow with automated rotation. Add alongside cert-manager if we want internal certs to auto-rotate without operator touches.
+- **Cloudflare Tunnel** handles external cert termination entirely at Cloudflare's edge. When we migrate public access from Tailscale Funnel to Cloudflare Tunnel (see earlier), external TLS becomes a solved problem with no cert manager required.
+- **acme.sh / certbot** only necessary if we ever serve public traffic directly from our IP without Cloudflare, which is unlikely.

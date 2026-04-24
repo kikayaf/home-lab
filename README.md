@@ -139,11 +139,13 @@ Landing actual services on top of the platform. Progress:
 | 3.5 | PostgreSQL + pgvector on `lab-datastore` | Done |
 | 3.6 | MinIO (S3) on `lab-datastore` | Done |
 | 3.7 | Redis on `lab-datastore` | Done |
-| later | Vaultwarden (self-hosted password vault) | Planned |
+| 3.9 | Vaultwarden on `lab-datastore` (self-hosted password vault) | Done |
+| 3.10 | Wildcard TLS for `*.lab.local` (mkcert) | Done |
 | later | restic backup automation | Planned |
 | later | observability stack on `lab-ai-ops` | Planned |
 | later | Structurizr Lite on `lab-platform-eng` (self-documenting) | Planned |
 | later | Workflow runner on `lab-automation` | Planned |
+| later | Cloudflare Tunnel + Access migration (from Tailscale Funnel) | Planned |
 
 Stage 3's foundation is done. End-to-end proven with the `hello.lab.local` smoke test. Every future web workload follows the same pattern (k8s manifest + nginx vhost + reload).
 
