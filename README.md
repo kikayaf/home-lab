@@ -123,7 +123,22 @@ Stage 2 is additive on top of stage 1, no rebuild required. Progress is tracked 
 | 6 | nginx reverse proxy for internal lab services | Done |
 | 7 | ufw firewall policy on every VM | Done |
 
-**Stage 2 is complete.** Every lab VM's internet traffic flows through `lab-gateway`, the whole lab is reachable via Tailscale from anywhere, `*.lab.local` resolves correctly from every lab VM and tailnet device, `lab-gateway` runs an nginx reverse proxy ready to dispatch service traffic by Host header, and every VM has a default-deny host firewall. The lab is ready for stage 3 workloads (k3s, postgres, observability, and so on).
+**Stage 2 is complete.** Every lab VM's internet traffic flows through `lab-gateway`, the whole lab is reachable via Tailscale from anywhere, `*.lab.local` resolves correctly from every lab VM and tailnet device, `lab-gateway` runs an nginx reverse proxy ready to dispatch service traffic by Host header, and every VM has a default-deny host firewall.
+
+## Stage 3: workloads
+
+Landing actual services on top of the platform. Progress:
+
+| Step | Capability | Status |
+|---|---|---|
+| 3.1 | k3s server on `lab-k3s-controlplane` | Done |
+| 3.2 | k3s agents on `lab-k3s-node01` and `lab-k3s-node02` | Done |
+| 3.3 | kubectl access from `lab-gateway` and Mac | Next |
+| 3.4 | Smoke-test workload reachable at `hello.lab.local` | Planned |
+| later | postgres + minio on `lab-datastore` | Planned |
+| later | observability stack on `lab-ai-ops` | Planned |
+| later | Structurizr Lite on `lab-platform-eng` (self-documenting) | Planned |
+| later | Workflow runner on `lab-automation` | Planned |
 
 Stage 2 also unlocks the lab documenting itself. Structurizr Lite runs as a Docker container on `lab-platform-eng` and serves the architecture workspace at `arch.lab.local` through nginx. Later, scheduled jobs on the Windows host and k3s control plane feed live state (Hyper-V inventory, `kubectl get all -A`, Docker ps output) back into the DSL, so the diagrams reflect reality without manual edits. See [`architecture/README.md`](./architecture/README.md#self-hosted-and-self-documenting-planned) for the plan.
 

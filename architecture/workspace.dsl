@@ -96,14 +96,14 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host: edge, applic
             //   layer will migrate from Docker-on-VM to k3s pods).
             // ---------------------------------------------------------------
             group "Platform layer" {
-                k3sServer = container "k3s server" "Kubernetes API, scheduler, controller-manager, embedded etcd" "Go · systemd" {
-                    tags "Native,Planned,Layer-Platform"
+                k3sServer = container "k3s server" "Kubernetes API, scheduler, controller-manager, embedded SQLite datastore. Traefik disabled (nginx on lab-gateway is the ingress layer)." "k3s v1.34.6 · systemd" {
+                    tags "Native,Layer-Platform"
                 }
-                k3sAgent01 = container "k3s agent (node01)" "kubelet + containerd; hosts workload pods" "Go · systemd" {
-                    tags "Native,Planned,Layer-Platform"
+                k3sAgent01 = container "k3s agent (node01)" "kubelet + containerd; hosts workload pods" "k3s v1.34.6 · systemd" {
+                    tags "Native,Layer-Platform"
                 }
-                k3sAgent02 = container "k3s agent (node02)" "kubelet + containerd; hosts workload pods" "Go · systemd" {
-                    tags "Native,Planned,Layer-Platform"
+                k3sAgent02 = container "k3s agent (node02)" "kubelet + containerd; hosts workload pods" "k3s v1.34.6 · systemd" {
+                    tags "Native,Layer-Platform"
                 }
             }
 
