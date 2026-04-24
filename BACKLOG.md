@@ -58,6 +58,7 @@ Services you actually use or demo. Mostly land as k3s Deployments exposed via ng
 | **Keycloak** or **Authentik** | SSO / OIDC provider | k3s | When multiple services start sharing identity |
 | **Homepage / Heimdall** | Dashboard of lab links | k3s, exposed at `home.lab.local` | Quality-of-life |
 | **Uptime Kuma** | Self-hosted status page | k3s | "Is it up?" style monitoring |
+| **Vaultwarden** | Self-hosted Bitwarden-compatible password vault (human passwords) | `lab-datastore` Docker or k3s pod | Data in Postgres (already available); web UI behind nginx at `vault.lab.local`; Cloudflare Tunnel later for cross-device access. Removes dependency on cloud password managers and gives you a place to store passwords we keep generating |
 | **Ollama** | Local LLM inference | `lab-ai-ops` | Needed for local AI work; GPU passthrough is nice-to-have |
 | **LiteLLM or OpenWebUI** | Frontend for Ollama / OpenAI-compatible APIs | k3s | Browser UI for lab-hosted LLMs |
 
@@ -129,7 +130,8 @@ Any of:
 | Add Cloudflare Access or similar SSO in front of internal services | When external exposure broadens |
 | Per-service ufw rules instead of "allow lab subnet full" | When we want real isolation between lab VMs |
 | Network policies (k3s NetworkPolicy) between namespaces | When multiple workloads share the cluster |
-| Secret storage: `.env` files now → Docker secrets / Vault / SOPS + age-encrypted Git | When secrets proliferate |
+| Machine secrets manager (HashiCorp Vault, OpenBao, or Infisical) for service credentials, API keys, cert material | When passwords in `.env` files and chat history become too many to track |
+| File-level secret encryption in git (`sops` + `age`, or `git-crypt`) for infra-level secrets | When we want secrets versioned alongside code without exposing them |
 | Passwordless SSH from Mac (copy/create a Mac-local key, push pubkey to every VM, drop password auth) | When the password prompts get annoying |
 
 ## Operational improvements
@@ -181,5 +183,41 @@ Thoughts we had that didn't graduate to a concrete item yet. Not actionable; cap
 - Swap `Lab` vSwitch from Internal to Private once stage 2 is fully trusted, forcing all access through Tailscale + lab-gateway. Today the Windows host is directly on the lab subnet; private would drop that.
 - Dedicate a second VHD on `lab-datastore` for `/srv/` so the OS disk and data disk are independent (backup/growth story is cleaner).
 - Move the architecture DSL rendering into a GitHub Action so every commit updates rendered SVGs attached to the repo.
-- Consider a proper secrets-management tool (Vault, Bitwarden CLI, 1Password Connect, age+sops in git) once we have more than a handful of secrets.
+- Consider a proper secrets-management tool (Vault, Bitwarden CLI, 1Password Connect, age+sops in git) once we have more than a handful of secrets. See the dedicated section below.
 - ARM support: none of the lab VMs are ARM today, but keeping images multi-arch where possible (most already are) would let us add a Raspberry Pi to the tailnet later and pull its weight.
+
+## Password vaults and secret management
+
+Two different problems that people often conflate. Both are planned; timing depends on pain.
+
+### Human password vault
+
+The thing you use daily for website logins, API credentials you copy-paste, and the lab-service passwords we've been generating.
+
+| Option | License | Strengths | Weaknesses |
+|---|---|---|---|
+| **Vaultwarden** | GPLv3 | Bitwarden-server-compatible in ~100 MB. Works with all Bitwarden clients (browser, mobile, desktop, CLI). Postgres backing (ours already). | Unofficial implementation; the trade-off for keeping it lightweight is that some Bitwarden enterprise features aren't there |
+| **Bitwarden self-hosted (official)** | GPLv3 | Official, full feature set | ~2-4 GB resource footprint; overkill for a solo lab |
+| **Passbolt** | AGPLv3 | Team-oriented, good sharing model | Heavier, needs MySQL/MariaDB rather than Postgres |
+| **KeePassXC** + sync | GPLv2 | Local-first; file sync via Git/Dropbox/SMB | No server; no web UI; phone apps are less polished |
+| **1Password** (not OSS) | Proprietary | Best-in-class UX | Paid; data in Apple/Agile servers |
+
+**Recommendation for this lab**: Vaultwarden on `lab-datastore` (or a k3s pod, either works) with Postgres as the data backend. Exposed internally via nginx at `vault.lab.local`. Reachable from work PC via Cloudflare Tunnel (when we migrate off Funnel). Browser extensions connect to the self-hosted URL. All Bitwarden clients work unchanged; they just point at our server instead of `bitwarden.com`.
+
+**Trigger to build**: when the number of generated passwords crosses "more than I can remember without writing them down" (we're close already; several lab-service passwords exist in chat history).
+
+### Machine secrets (service-to-service credentials)
+
+The thing services need at runtime: DB passwords, API keys, TLS certs, GitHub tokens for CI, tailnet auth keys.
+
+| Option | License | Strengths | Weaknesses |
+|---|---|---|---|
+| **HashiCorp Vault** | BSL (not OSS after v1.14) | Industry standard, huge feature set (dynamic secrets, PKI, transit encryption, SSH certs) | License change; heavy; steep learning curve |
+| **OpenBao** | MPLv2 | Fork of Vault 1.14, stays OSS; drop-in compatible | Community still growing |
+| **Infisical** | MIT | Developer-friendly, nice UI, good DX | Younger; fewer integrations than Vault |
+| **age + sops, encrypted in git** | Free, OSS | No server needed; secrets live alongside code | Manual rotation; no dynamic secrets |
+| **Docker secrets / k8s Secrets** | Free | Already available where we run containers | Just-opaque storage; no rotation, no audit |
+
+**Recommendation for this lab**: Start with `sops` + `age` for infra-level secrets that fit with git (e.g., deployment configs, env files). Move to OpenBao or Vault only when service-to-service dynamic creds are needed. Not on the critical path yet.
+
+**Trigger to build**: when we have more than 3-4 services with long-lived credentials.
