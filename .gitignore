@@ -110,8 +110,15 @@ $RECYCLE.BIN/
 # =============================================================================
 # Tooling working directories
 # =============================================================================
-# Structurizr Lite writes workspace state here if run locally
+# Structurizr's generated/cached files when the renderer is pointed at the
+# architecture directory. workspace.dsl is the source of truth; everything
+# else here is generated and shouldn't be committed.
 architecture/.structurizr/
+architecture/workspace.json
+architecture/*.png
+architecture/*.svg
+# structurizr-site-generatr output
+architecture/build/
 
 # Python virtualenvs if any scripts grow that direction later
 .venv/
