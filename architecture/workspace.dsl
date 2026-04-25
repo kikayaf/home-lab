@@ -51,82 +51,82 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
 
             group "Edge and Access layer" {
                 tailscale = container "Tailscale" "Subnet router (192.168.100.0/24 into tailnet) + Tailscale SSH + Funnel for work-PC access" "Go · systemd" {
-                    tags "Native,Layer-Edge"
+                    tags "EdgeNative"
                 }
                 coredns = container "CoreDNS" "Authoritative for *.lab.local, forwards the rest upstream, served via Tailscale Split DNS" "Docker: coredns/coredns:1.11.3" {
-                    tags "Docker,Layer-Edge"
+                    tags "EdgeDocker"
                 }
                 nginx = container "nginx" "Reverse proxy. Dispatches *.lab.local by Host header. Serves TLS with lab CA wildcard cert." "Docker: nginx:1.27-alpine" {
-                    tags "Docker,Layer-Edge"
+                    tags "EdgeDocker"
                 }
             }
 
             group "Application layer" {
-                workflows = container "Workflow runner" "Scheduled jobs, CI agents, operational automation" "Docker (TBD)" {
-                    tags "Docker,Planned,Layer-App"
+                workflows = container "Workflow runner" "Scheduled jobs, CI agents, operational automation (planned)" "Docker (TBD)" {
+                    tags "AppPlanned"
                 }
-                devtools = container "Platform tools" "IaC runners, templating, internal CLI sandbox" "Docker (TBD)" {
-                    tags "Docker,Planned,Layer-App"
+                devtools = container "Platform tools" "IaC runners, templating, internal CLI sandbox (planned)" "Docker (TBD)" {
+                    tags "AppPlanned"
                 }
-                modelServer = container "Model serving" "AI/ML model inference endpoint" "Docker (TBD)" {
-                    tags "Docker,Planned,Layer-App"
+                modelServer = container "Model serving" "AI/ML model inference endpoint (planned)" "Docker (TBD)" {
+                    tags "AppPlanned"
                 }
                 structurizr = container "Structurizr site" "Static site rendered from this workspace.dsl; makes the architecture diagrams available at arch.lab.local" "Docker: ghcr.io/avisi-cloud/structurizr-site-generatr" {
-                    tags "Docker,Layer-App,SelfDocumenting"
+                    tags "AppDocker"
                 }
                 codeServer = container "code-server" "Browser VS Code. Internal at code.lab.local; public via Tailscale Funnel for work-PC use." "Docker: codercom/code-server:4.95.3" {
-                    tags "Docker,Layer-App"
+                    tags "AppDocker"
                 }
                 vaultwarden = container "Vaultwarden" "Self-hosted Bitwarden-compatible password manager. HTTPS at vault.lab.local. Postgres-backed." "Docker: vaultwarden/server:1.35.7" {
-                    tags "Docker,Layer-App"
+                    tags "AppDocker"
                 }
             }
 
             group "Platform layer" {
                 k3sServer = container "k3s server" "Kubernetes API, scheduler, controller-manager, embedded SQLite. Traefik disabled (nginx owns ingress)." "k3s v1.34.6 · systemd" {
-                    tags "Native,Layer-Platform"
+                    tags "PlatformNative"
                 }
                 k3sAgent01 = container "k3s agent (node01)" "kubelet + containerd, hosts workload pods" "k3s v1.34.6 · systemd" {
-                    tags "Native,Layer-Platform"
+                    tags "PlatformNative"
                 }
                 k3sAgent02 = container "k3s agent (node02)" "kubelet + containerd, hosts workload pods" "k3s v1.34.6 · systemd" {
-                    tags "Native,Layer-Platform"
+                    tags "PlatformNative"
                 }
             }
 
             group "Data layer" {
                 postgres = container "PostgreSQL" "Primary OLTP store, one logical database per app. pgvector 0.8.0 extension available." "Docker: pgvector/pgvector:0.8.0-pg16" {
-                    tags "Docker,Layer-Data"
+                    tags "DataDocker"
                 }
                 minio = container "MinIO" "S3-compatible object storage. API at s3.lab.local, console at minio.lab.local." "Docker: minio/minio" {
-                    tags "Docker,Layer-Data"
+                    tags "DataDocker"
                 }
                 redis = container "Redis" "In-memory cache + simple queue. AOF + LRU eviction at 256 MB." "Docker: redis:7-alpine" {
-                    tags "Docker,Layer-Data"
+                    tags "DataDocker"
                 }
-                restic = container "restic" "Encrypted backups of Postgres + critical volumes to MinIO and offsite" "Docker: restic/restic" {
-                    tags "Docker,Planned,Layer-Data"
+                restic = container "restic" "Encrypted backups of Postgres + critical volumes to MinIO and offsite (planned)" "Docker: restic/restic" {
+                    tags "DataPlanned"
                 }
             }
 
             group "Security layer (cross-cutting)" {
                 iptables = container "iptables NAT" "Masquerades lab egress from 192.168.100.0/24 through eth1 on the home network" "Kernel netfilter" {
-                    tags "Kernel,Layer-Security"
+                    tags "SecurityKernel"
                 }
                 ufw = container "ufw" "Per-host firewall policy on every VM. Default deny inbound, trust lab subnet and tailnet." "Kernel netfilter" {
-                    tags "Kernel,Layer-Security"
+                    tags "SecurityKernel"
                 }
             }
 
             group "Observability layer (cross-cutting)" {
-                prometheus = container "Prometheus" "Scrapes metrics from every layer (details omitted); long-term storage in MinIO." "Docker: prom/prometheus" {
-                    tags "Docker,Planned,Layer-Observability"
+                prometheus = container "Prometheus" "Scrapes metrics from every layer (details omitted); long-term storage in MinIO (planned)" "Docker: prom/prometheus" {
+                    tags "ObsPlanned"
                 }
-                grafana = container "Grafana" "Dashboards over Prometheus and Loki" "Docker: grafana/grafana" {
-                    tags "Docker,Planned,Layer-Observability"
+                grafana = container "Grafana" "Dashboards over Prometheus and Loki (planned)" "Docker: grafana/grafana" {
+                    tags "ObsPlanned"
                 }
-                loki = container "Loki" "Log aggregation; chunks in MinIO" "Docker: grafana/loki" {
-                    tags "Docker,Planned,Layer-Observability"
+                loki = container "Loki" "Log aggregation; chunks in MinIO (planned)" "Docker: grafana/loki" {
+                    tags "ObsPlanned"
                 }
             }
         }
@@ -310,46 +310,69 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
                 color "#ffffff"
             }
 
-            // ---- Per-layer colors (background/stroke per architectural layer)
-            element "Layer-Edge" {
+            // ---- Container styles (one tag = full visual style)
+            // Edge layer: orange. Hexagon = Docker, RoundedBox = native daemon.
+            element "EdgeDocker" {
+                shape hexagon
                 background "#f57c00"
                 color "#ffffff"
             }
-            element "Layer-App" {
+            element "EdgeNative" {
+                shape roundedBox
+                background "#f57c00"
+                color "#ffffff"
+            }
+
+            // Application layer: blue.
+            element "AppDocker" {
+                shape hexagon
                 background "#1976d2"
                 color "#ffffff"
             }
-            element "Layer-Platform" {
+            element "AppPlanned" {
+                shape hexagon
+                background "#90caf9"
+                color "#0d47a1"
+                border dashed
+            }
+
+            // Platform layer: purple. k3s runs native.
+            element "PlatformNative" {
+                shape roundedBox
                 background "#6a1b9a"
                 color "#ffffff"
             }
-            element "Layer-Data" {
+
+            // Data layer: green.
+            element "DataDocker" {
+                shape hexagon
                 background "#2e7d32"
                 color "#ffffff"
             }
-            element "Layer-Security" {
+            element "DataPlanned" {
+                shape hexagon
+                background "#a5d6a7"
+                color "#1b5e20"
+                border dashed
+            }
+
+            // Security layer: red. iptables/ufw are kernel features.
+            element "SecurityKernel" {
+                shape component
                 background "#c62828"
                 color "#ffffff"
             }
-            element "Layer-Observability" {
+
+            // Observability layer: teal.
+            element "ObsDocker" {
+                shape hexagon
                 background "#00838f"
                 color "#ffffff"
             }
-
-            // ---- Runtime shapes (tag-overlay after layer color)
-            element "Docker" {
+            element "ObsPlanned" {
                 shape hexagon
-            }
-            element "Native" {
-                shape roundedBox
-            }
-            element "Kernel" {
-                shape component
-            }
-
-            // ---- State marker
-            element "Planned" {
-                opacity 55
+                background "#80deea"
+                color "#006064"
                 border dashed
             }
 
