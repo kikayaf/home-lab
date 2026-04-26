@@ -1,0 +1,43 @@
+# =============================================================================
+# ntfy server config for the home lab
+# =============================================================================
+# Mounted at /etc/ntfy/server.yml inside the container. Restart the container
+# after editing to pick up changes (no hot reload).
+#
+# Public-facing URL is https://ntfy.lab.local (wildcard TLS terminates at
+# nginx on lab-gateway). Internal listen is on :80 inside the container,
+# proxied by nginx; behind-proxy:true tells ntfy to trust X-Forwarded-* so
+# rate limits and auth work against the real client IP.
+# =============================================================================
+
+base-url: "https://ntfy.lab.local"
+listen-http: ":80"
+
+# Storage
+cache-file: /var/cache/ntfy/cache.db
+cache-duration: 24h
+attachment-cache-dir: /var/cache/ntfy/attachments
+attachment-total-size-limit: "5G"
+attachment-file-size-limit: "15M"
+attachment-expiry-duration: "12h"
+
+# Behind nginx; trust forwarded headers
+behind-proxy: true
+
+# Keep-alive cadence for long-poll subscribers (mobile apps over flaky
+# networks, browsers, etc.)
+keepalive-interval: "45s"
+manager-interval: "1m"
+
+# Auth: anyone-on-tailnet can publish/subscribe. Lab-internal only; if we
+# ever expose ntfy publicly via Cloudflare Tunnel, switch to
+# `auth-default-access: deny-all` and provision specific users via
+# `ntfy access` CLI.
+auth-default-access: read-write
+
+# Web UI is enabled by default at the base URL. Useful for testing the
+# pipeline without the mobile app.
+
+# Logging
+log-level: INFO
+log-format: text

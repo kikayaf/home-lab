@@ -12,20 +12,43 @@
 global:
   resolve_timeout: 5m
 
-# Route tree: all alerts go to the default receiver. Add severity-specific
-# routes here later if we want different paths for warning vs critical.
+# Route tree:
+#   - critical alerts publish to ntfy immediately (no batching, max priority)
+#   - warning alerts publish to ntfy with default priority and 5m batching
+#   - the "log" receiver remains as a fallback / silence target
 route:
   group_by: ['alertname', 'host']
   group_wait: 30s
   group_interval: 5m
   repeat_interval: 12h
-  receiver: log
+  receiver: ntfy-warning
+  routes:
+    - matchers:
+        - severity = "critical"
+      receiver: ntfy-critical
+      group_wait: 0s
+      repeat_interval: 1h
+      continue: false
 
 receivers:
   - name: log
-    # No webhook, no email. The receiver is "void"; alerts still appear in
-    # the Alertmanager UI, the Prometheus /alerts page, and Grafana > Alerting.
-    # Future: add slack_configs / email_configs / webhook_configs here.
+    # No webhook, no notification. Used to silence selected alerts (e.g.
+    # ones we know are flaky) by routing them here.
+
+  - name: ntfy-warning
+    webhook_configs:
+      - url: 'http://ntfy/lab-alerts?priority=default&tags=warning'
+        send_resolved: true
+        http_config:
+          # ntfy doesn't expect Alertmanager's content-type; let it default
+          follow_redirects: true
+
+  - name: ntfy-critical
+    webhook_configs:
+      - url: 'http://ntfy/lab-alerts?priority=max&tags=rotating_light'
+        send_resolved: true
+        http_config:
+          follow_redirects: true
 
 inhibit_rules:
   # If a host is down, suppress all the per-service alerts for that host.
