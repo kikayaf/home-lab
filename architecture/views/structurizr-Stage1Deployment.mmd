@@ -4,128 +4,170 @@ graph TB
   subgraph diagram ["Deployment View: Home Lab - Stage 1 (current)"]
     style diagram fill:#ffffff,stroke:#ffffff
 
-    subgraph 63 ["Physical Windows host"]
-      style 63 fill:#ffffff,stroke:#171717,color:#ffffff
+    subgraph 86 ["Physical Windows host"]
+      style 86 fill:#ffffff,stroke:#171717,color:#ffffff
 
-      subgraph 64 ["Windows 11 + Hyper-V"]
-        style 64 fill:#ffffff,stroke:#263137,color:#ffffff
+      subgraph 87 ["Windows 11 + Hyper-V"]
+        style 87 fill:#ffffff,stroke:#263137,color:#ffffff
 
-        subgraph 65 ["Lab vSwitch · Internal · 192.168.100.0/24 · Windows NAT"]
-          style 65 fill:#ffffff,stroke:#a5a7a8,color:#212121
+        subgraph 88 ["Lab vSwitch · Internal · 192.168.100.0/24 · Windows NAT"]
+          style 88 fill:#ffffff,stroke:#a5a7a8,color:#212121
 
-          subgraph 111 ["lab-automation VM (.207)"]
-            style 111 fill:#ffffff,stroke:#303e46,color:#ffffff
+          subgraph 103 ["lab-k3s-controlplane VM (.202)"]
+            style 103 fill:#ffffff,stroke:#303e46,color:#ffffff
 
-            subgraph 112 ["Docker engine"]
-              style 112 fill:#ffffff,stroke:#435761,color:#ffffff
+            104("<div style='font-weight: bold'>k3s server</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34.6 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Kubernetes API, scheduler,<br />controller-manager, embedded<br />SQLite. Traefik disabled<br />(nginx owns ingress).</div>")
+            style 104 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
+            107("<div style='font-weight: bold'>node_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v1.8.2 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Host metrics agent on every<br />VM (CPU, memory, disk,<br />network, systemd unit state).<br />Bound to :9100.</div>")
+            style 107 fill:#00838f,stroke:#005b64,color:#ffffff
+            108("<div style='font-weight: bold'>Promtail</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v3.4.1 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Log shipper on every VM.<br />Tails journald, /var/log,<br />nginx logs, Docker container<br />logs. Pushes to Loki.</div>")
+            style 108 fill:#00838f,stroke:#005b64,color:#ffffff
+          end
 
-              113["<div style='font-weight: bold'>Workflow runner</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>Scheduled jobs, CI agents,<br />operational automation<br />(planned)</div>"]
-              style 113 fill:#90caf9,stroke:#648dae,color:#0d47a1
+          subgraph 109 ["lab-k3s-node01 VM (.203)"]
+            style 109 fill:#ffffff,stroke:#303e46,color:#ffffff
+
+            110("<div style='font-weight: bold'>k3s agent (node01)</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34.6 · systemd]</div><div style='font-size: 80%; margin-top:10px'>kubelet + containerd, hosts<br />workload pods</div>")
+            style 110 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
+            112("<div style='font-weight: bold'>node_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v1.8.2 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Host metrics agent on every<br />VM (CPU, memory, disk,<br />network, systemd unit state).<br />Bound to :9100.</div>")
+            style 112 fill:#00838f,stroke:#005b64,color:#ffffff
+            113("<div style='font-weight: bold'>Promtail</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v3.4.1 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Log shipper on every VM.<br />Tails journald, /var/log,<br />nginx logs, Docker container<br />logs. Pushes to Loki.</div>")
+            style 113 fill:#00838f,stroke:#005b64,color:#ffffff
+          end
+
+          subgraph 114 ["lab-k3s-node02 VM (.204)"]
+            style 114 fill:#ffffff,stroke:#303e46,color:#ffffff
+
+            115("<div style='font-weight: bold'>k3s agent (node02)</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34.6 · systemd]</div><div style='font-size: 80%; margin-top:10px'>kubelet + containerd, hosts<br />workload pods</div>")
+            style 115 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
+            117("<div style='font-weight: bold'>node_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v1.8.2 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Host metrics agent on every<br />VM (CPU, memory, disk,<br />network, systemd unit state).<br />Bound to :9100.</div>")
+            style 117 fill:#00838f,stroke:#005b64,color:#ffffff
+            118("<div style='font-weight: bold'>Promtail</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v3.4.1 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Log shipper on every VM.<br />Tails journald, /var/log,<br />nginx logs, Docker container<br />logs. Pushes to Loki.</div>")
+            style 118 fill:#00838f,stroke:#005b64,color:#ffffff
+          end
+
+          subgraph 119 ["lab-datastore VM (.205)"]
+            style 119 fill:#ffffff,stroke:#303e46,color:#ffffff
+
+            120("<div style='font-weight: bold'>node_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v1.8.2 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Host metrics agent on every<br />VM (CPU, memory, disk,<br />network, systemd unit state).<br />Bound to :9100.</div>")
+            style 120 fill:#00838f,stroke:#005b64,color:#ffffff
+            121("<div style='font-weight: bold'>Promtail</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v3.4.1 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Log shipper on every VM.<br />Tails journald, /var/log,<br />nginx logs, Docker container<br />logs. Pushes to Loki.</div>")
+            style 121 fill:#00838f,stroke:#005b64,color:#ffffff
+            subgraph 122 ["Docker engine"]
+              style 122 fill:#ffffff,stroke:#435761,color:#ffffff
+
+              123["<div style='font-weight: bold'>PostgreSQL</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: pgvector/pgvector:0.8.0-pg16]</div><div style='font-size: 80%; margin-top:10px'>Primary OLTP store, one<br />logical database per app.<br />pgvector 0.8.0 extension<br />available.</div>"]
+              style 123 fill:#2e7d32,stroke:#205723,color:#ffffff
+              124["<div style='font-weight: bold'>MinIO</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: minio/minio]</div><div style='font-size: 80%; margin-top:10px'>S3-compatible object storage.<br />API at s3.lab.local, console<br />at minio.lab.local.</div>"]
+              style 124 fill:#2e7d32,stroke:#205723,color:#ffffff
+              126["<div style='font-weight: bold'>Redis</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: redis:7-alpine]</div><div style='font-size: 80%; margin-top:10px'>In-memory cache + simple<br />queue. AOF + LRU eviction at<br />256 MB.</div>"]
+              style 126 fill:#2e7d32,stroke:#205723,color:#ffffff
+              127["<div style='font-weight: bold'>Vaultwarden</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: vaultwarden/server:1.35.7]</div><div style='font-size: 80%; margin-top:10px'>Self-hosted<br />Bitwarden-compatible password<br />manager. HTTPS at<br />vault.lab.local.<br />Postgres-backed.</div>"]
+              style 127 fill:#1976d2,stroke:#115293,color:#ffffff
+              130["<div style='font-weight: bold'>restic</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: restic/restic]</div><div style='font-size: 80%; margin-top:10px'>Encrypted backups of Postgres<br />+ critical volumes to MinIO<br />and offsite (planned)</div>"]
+              style 130 fill:#a5d6a7,stroke:#739574,color:#1b5e20
+              133["<div style='font-weight: bold'>postgres_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prometheuscommunity/postgres-exporter:v0.16.0]</div><div style='font-size: 80%; margin-top:10px'>Postgres metrics (pg_stat_*,<br />replication, locks). Reads<br />via pg_monitor role.</div>"]
+              style 133 fill:#00838f,stroke:#005b64,color:#ffffff
+              135["<div style='font-weight: bold'>redis_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: oliver006/redis_exporter:v1.66.0]</div><div style='font-size: 80%; margin-top:10px'>Redis metrics (memory,<br />ops/sec, evictions, slow<br />log).</div>"]
+              style 135 fill:#00838f,stroke:#005b64,color:#ffffff
             end
 
           end
 
-          subgraph 118 ["lab-platform-eng VM (.208)"]
-            style 118 fill:#ffffff,stroke:#303e46,color:#ffffff
+          subgraph 137 ["lab-ai-ops VM (.206)"]
+            style 137 fill:#ffffff,stroke:#303e46,color:#ffffff
 
-            subgraph 119 ["Docker engine"]
-              style 119 fill:#ffffff,stroke:#435761,color:#ffffff
+            138("<div style='font-weight: bold'>node_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v1.8.2 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Host metrics agent on every<br />VM (CPU, memory, disk,<br />network, systemd unit state).<br />Bound to :9100.</div>")
+            style 138 fill:#00838f,stroke:#005b64,color:#ffffff
+            139("<div style='font-weight: bold'>Promtail</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v3.4.1 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Log shipper on every VM.<br />Tails journald, /var/log,<br />nginx logs, Docker container<br />logs. Pushes to Loki.</div>")
+            style 139 fill:#00838f,stroke:#005b64,color:#ffffff
+            subgraph 140 ["Docker engine"]
+              style 140 fill:#ffffff,stroke:#435761,color:#ffffff
 
-              120["<div style='font-weight: bold'>Platform tools</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>IaC runners, templating,<br />internal CLI sandbox<br />(planned)</div>"]
-              style 120 fill:#90caf9,stroke:#648dae,color:#0d47a1
-              122["<div style='font-weight: bold'>Structurizr site</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: ghcr.io/avisi-cloud/structurizr-site-generatr]</div><div style='font-size: 80%; margin-top:10px'>Static site rendered from<br />this workspace.dsl; makes the<br />architecture diagrams<br />available at arch.lab.local</div>"]
-              style 122 fill:#1976d2,stroke:#115293,color:#ffffff
-              124["<div style='font-weight: bold'>code-server</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: codercom/code-server:4.95.3]</div><div style='font-size: 80%; margin-top:10px'>Browser VS Code. Internal at<br />code.lab.local; public via<br />Tailscale Funnel for work-PC<br />use.</div>"]
-              style 124 fill:#1976d2,stroke:#115293,color:#ffffff
+              141["<div style='font-weight: bold'>Model serving</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>AI/ML model inference<br />endpoint (planned)</div>"]
+              style 141 fill:#90caf9,stroke:#648dae,color:#0d47a1
             end
 
           end
 
-          subgraph 66 ["lab-gateway VM (.201)"]
-            style 66 fill:#ffffff,stroke:#303e46,color:#ffffff
+          subgraph 144 ["lab-automation VM (.207)"]
+            style 144 fill:#ffffff,stroke:#303e46,color:#ffffff
 
-            subgraph 67 ["systemd"]
-              style 67 fill:#ffffff,stroke:#444444,color:#444444
+            145("<div style='font-weight: bold'>node_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v1.8.2 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Host metrics agent on every<br />VM (CPU, memory, disk,<br />network, systemd unit state).<br />Bound to :9100.</div>")
+            style 145 fill:#00838f,stroke:#005b64,color:#ffffff
+            146("<div style='font-weight: bold'>Promtail</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v3.4.1 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Log shipper on every VM.<br />Tails journald, /var/log,<br />nginx logs, Docker container<br />logs. Pushes to Loki.</div>")
+            style 146 fill:#00838f,stroke:#005b64,color:#ffffff
+            subgraph 147 ["Docker engine"]
+              style 147 fill:#ffffff,stroke:#435761,color:#ffffff
 
-              68("<div style='font-weight: bold'>Tailscale</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go · systemd]</div><div style='font-size: 80%; margin-top:10px'>Subnet router<br />(192.168.100.0/24 into<br />tailnet) + Tailscale SSH +<br />Funnel for work-PC access</div>")
-              style 68 fill:#f57c00,stroke:#ab5600,color:#ffffff
-            end
-
-            subgraph 69 ["Linux kernel"]
-              style 69 fill:#ffffff,stroke:#444444,color:#444444
-
-              70["<div style='font-weight: bold'>iptables NAT</div><div style='font-size: 70%; margin-top: 0px'>[Container: Kernel netfilter]</div><div style='font-size: 80%; margin-top:10px'>Masquerades lab egress from<br />192.168.100.0/24 through eth1<br />on the home network</div>"]
-              style 70 fill:#c62828,stroke:#8a1c1c,color:#ffffff
-              72["<div style='font-weight: bold'>ufw</div><div style='font-size: 70%; margin-top: 0px'>[Container: Kernel netfilter]</div><div style='font-size: 80%; margin-top:10px'>Per-host firewall policy on<br />every VM. Default deny<br />inbound, trust lab subnet and<br />tailnet.</div>"]
-              style 72 fill:#c62828,stroke:#8a1c1c,color:#ffffff
-            end
-
-            subgraph 73 ["Docker engine"]
-              style 73 fill:#ffffff,stroke:#435761,color:#ffffff
-
-              74["<div style='font-weight: bold'>CoreDNS</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: coredns/coredns:1.11.3]</div><div style='font-size: 80%; margin-top:10px'>Authoritative for<br />*.lab.local, forwards the<br />rest upstream, served via<br />Tailscale Split DNS</div>"]
-              style 74 fill:#f57c00,stroke:#ab5600,color:#ffffff
-              75["<div style='font-weight: bold'>nginx</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: nginx:1.27-alpine]</div><div style='font-size: 80%; margin-top:10px'>Reverse proxy. Dispatches<br />*.lab.local by Host header.<br />Serves TLS with lab CA<br />wildcard cert.</div>"]
-              style 75 fill:#f57c00,stroke:#ab5600,color:#ffffff
+              148["<div style='font-weight: bold'>Workflow runner</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>Scheduled jobs, CI agents,<br />operational automation<br />(planned)</div>"]
+              style 148 fill:#90caf9,stroke:#648dae,color:#0d47a1
             end
 
           end
 
-          subgraph 76 ["lab-k3s-controlplane VM (.202)"]
-            style 76 fill:#ffffff,stroke:#303e46,color:#ffffff
+          subgraph 153 ["lab-platform-eng VM (.208)"]
+            style 153 fill:#ffffff,stroke:#303e46,color:#ffffff
 
-            77("<div style='font-weight: bold'>k3s server</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34.6 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Kubernetes API, scheduler,<br />controller-manager, embedded<br />SQLite. Traefik disabled<br />(nginx owns ingress).</div>")
-            style 77 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
-          end
+            154("<div style='font-weight: bold'>node_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v1.8.2 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Host metrics agent on every<br />VM (CPU, memory, disk,<br />network, systemd unit state).<br />Bound to :9100.</div>")
+            style 154 fill:#00838f,stroke:#005b64,color:#ffffff
+            155("<div style='font-weight: bold'>Promtail</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v3.4.1 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Log shipper on every VM.<br />Tails journald, /var/log,<br />nginx logs, Docker container<br />logs. Pushes to Loki.</div>")
+            style 155 fill:#00838f,stroke:#005b64,color:#ffffff
+            subgraph 156 ["Docker engine"]
+              style 156 fill:#ffffff,stroke:#435761,color:#ffffff
 
-          subgraph 80 ["lab-k3s-node01 VM (.203)"]
-            style 80 fill:#ffffff,stroke:#303e46,color:#ffffff
-
-            81("<div style='font-weight: bold'>k3s agent (node01)</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34.6 · systemd]</div><div style='font-size: 80%; margin-top:10px'>kubelet + containerd, hosts<br />workload pods</div>")
-            style 81 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
-          end
-
-          subgraph 83 ["lab-k3s-node02 VM (.204)"]
-            style 83 fill:#ffffff,stroke:#303e46,color:#ffffff
-
-            84("<div style='font-weight: bold'>k3s agent (node02)</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34.6 · systemd]</div><div style='font-size: 80%; margin-top:10px'>kubelet + containerd, hosts<br />workload pods</div>")
-            style 84 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
-          end
-
-          subgraph 86 ["lab-datastore VM (.205)"]
-            style 86 fill:#ffffff,stroke:#303e46,color:#ffffff
-
-            subgraph 87 ["Docker engine"]
-              style 87 fill:#ffffff,stroke:#435761,color:#ffffff
-
-              88["<div style='font-weight: bold'>PostgreSQL</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: pgvector/pgvector:0.8.0-pg16]</div><div style='font-size: 80%; margin-top:10px'>Primary OLTP store, one<br />logical database per app.<br />pgvector 0.8.0 extension<br />available.</div>"]
-              style 88 fill:#2e7d32,stroke:#205723,color:#ffffff
-              89["<div style='font-weight: bold'>MinIO</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: minio/minio]</div><div style='font-size: 80%; margin-top:10px'>S3-compatible object storage.<br />API at s3.lab.local, console<br />at minio.lab.local.</div>"]
-              style 89 fill:#2e7d32,stroke:#205723,color:#ffffff
-              91["<div style='font-weight: bold'>Redis</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: redis:7-alpine]</div><div style='font-size: 80%; margin-top:10px'>In-memory cache + simple<br />queue. AOF + LRU eviction at<br />256 MB.</div>"]
-              style 91 fill:#2e7d32,stroke:#205723,color:#ffffff
-              92["<div style='font-weight: bold'>Vaultwarden</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: vaultwarden/server:1.35.7]</div><div style='font-size: 80%; margin-top:10px'>Self-hosted<br />Bitwarden-compatible password<br />manager. HTTPS at<br />vault.lab.local.<br />Postgres-backed.</div>"]
-              style 92 fill:#1976d2,stroke:#115293,color:#ffffff
-              95["<div style='font-weight: bold'>restic</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: restic/restic]</div><div style='font-size: 80%; margin-top:10px'>Encrypted backups of Postgres<br />+ critical volumes to MinIO<br />and offsite (planned)</div>"]
-              style 95 fill:#a5d6a7,stroke:#739574,color:#1b5e20
+              157["<div style='font-weight: bold'>Platform tools</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>IaC runners, templating,<br />internal CLI sandbox<br />(planned)</div>"]
+              style 157 fill:#90caf9,stroke:#648dae,color:#0d47a1
+              159["<div style='font-weight: bold'>Structurizr site</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: ghcr.io/avisi-cloud/structurizr-site-generatr]</div><div style='font-size: 80%; margin-top:10px'>Static site rendered from<br />this workspace.dsl; makes the<br />architecture diagrams<br />available at arch.lab.local</div>"]
+              style 159 fill:#1976d2,stroke:#115293,color:#ffffff
+              161["<div style='font-weight: bold'>code-server</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: codercom/code-server:4.95.3]</div><div style='font-size: 80%; margin-top:10px'>Browser VS Code. Internal at<br />code.lab.local; public via<br />Tailscale Funnel for work-PC<br />use.</div>"]
+              style 161 fill:#1976d2,stroke:#115293,color:#ffffff
+              164["<div style='font-weight: bold'>Prometheus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prom/prometheus:v2.55.1]</div><div style='font-size: 80%; margin-top:10px'>Scrapes node, postgres,<br />redis, nginx, MinIO, grafana,<br />alertmanager, loki, ntfy.<br />30-day TSDB retention. Sends<br />alert events to Alertmanager.</div>"]
+              style 164 fill:#00838f,stroke:#005b64,color:#ffffff
+              178["<div style='font-weight: bold'>Grafana</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/grafana:11.3.0]</div><div style='font-size: 80%; margin-top:10px'>Dashboards over Prometheus<br />and Loki. Provisioned data<br />sources, six pre-loaded<br />dashboards including custom<br />Lab Overview.</div>"]
+              style 178 fill:#00838f,stroke:#005b64,color:#ffffff
+              181["<div style='font-weight: bold'>Loki</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/loki:3.4.1]</div><div style='font-size: 80%; margin-top:10px'>Log aggregation. Filesystem<br />storage, 14-day retention,<br />monolithic mode.</div>"]
+              style 181 fill:#00838f,stroke:#005b64,color:#ffffff
+              191["<div style='font-weight: bold'>Alertmanager</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prom/alertmanager:v0.27.0]</div><div style='font-size: 80%; margin-top:10px'>Routes Prometheus alerts.<br />Critical -> ntfy max<br />priority, warning -> ntfy<br />default, log receiver<br />fallback.</div>"]
+              style 191 fill:#00838f,stroke:#005b64,color:#ffffff
+              194["<div style='font-weight: bold'>ntfy</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: binwiederhier/ntfy:v2.11.0]</div><div style='font-size: 80%; margin-top:10px'>Self-hosted push<br />notifications. Receives<br />Alertmanager webhooks; phone<br />(over tailnet) subscribes to<br />lab-alerts topic.</div>"]
+              style 194 fill:#00838f,stroke:#005b64,color:#ffffff
             end
 
           end
 
-          subgraph 98 ["lab-ai-ops VM (.206)"]
-            style 98 fill:#ffffff,stroke:#303e46,color:#ffffff
+          subgraph 89 ["lab-gateway VM (.201)"]
+            style 89 fill:#ffffff,stroke:#303e46,color:#ffffff
 
-            subgraph 99 ["Docker engine"]
-              style 99 fill:#ffffff,stroke:#435761,color:#ffffff
+            subgraph 90 ["systemd"]
+              style 90 fill:#ffffff,stroke:#444444,color:#444444
 
-              100["<div style='font-weight: bold'>Prometheus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prom/prometheus]</div><div style='font-size: 80%; margin-top:10px'>Scrapes metrics from every<br />layer (details omitted);<br />long-term storage in MinIO<br />(planned)</div>"]
-              style 100 fill:#80deea,stroke:#599ba3,color:#006064
-              102["<div style='font-weight: bold'>Grafana</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/grafana]</div><div style='font-size: 80%; margin-top:10px'>Dashboards over Prometheus<br />and Loki (planned)</div>"]
-              style 102 fill:#80deea,stroke:#599ba3,color:#006064
-              105["<div style='font-weight: bold'>Loki</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/loki]</div><div style='font-size: 80%; margin-top:10px'>Log aggregation; chunks in<br />MinIO (planned)</div>"]
-              style 105 fill:#80deea,stroke:#599ba3,color:#006064
-              108["<div style='font-weight: bold'>Model serving</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>AI/ML model inference<br />endpoint (planned)</div>"]
-              style 108 fill:#90caf9,stroke:#648dae,color:#0d47a1
+              91("<div style='font-weight: bold'>Tailscale</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go · systemd]</div><div style='font-size: 80%; margin-top:10px'>Subnet router<br />(192.168.100.0/24 into<br />tailnet) + Tailscale SSH +<br />Funnel for work-PC access</div>")
+              style 91 fill:#f57c00,stroke:#ab5600,color:#ffffff
+              92("<div style='font-weight: bold'>node_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v1.8.2 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Host metrics agent on every<br />VM (CPU, memory, disk,<br />network, systemd unit state).<br />Bound to :9100.</div>")
+              style 92 fill:#00838f,stroke:#005b64,color:#ffffff
+              93("<div style='font-weight: bold'>Promtail</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v3.4.1 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Log shipper on every VM.<br />Tails journald, /var/log,<br />nginx logs, Docker container<br />logs. Pushes to Loki.</div>")
+              style 93 fill:#00838f,stroke:#005b64,color:#ffffff
+            end
+
+            subgraph 94 ["Linux kernel"]
+              style 94 fill:#ffffff,stroke:#444444,color:#444444
+
+              95["<div style='font-weight: bold'>iptables NAT</div><div style='font-size: 70%; margin-top: 0px'>[Container: Kernel netfilter]</div><div style='font-size: 80%; margin-top:10px'>Masquerades lab egress from<br />192.168.100.0/24 through eth1<br />on the home network</div>"]
+              style 95 fill:#c62828,stroke:#8a1c1c,color:#ffffff
+              97["<div style='font-weight: bold'>ufw</div><div style='font-size: 70%; margin-top: 0px'>[Container: Kernel netfilter]</div><div style='font-size: 80%; margin-top:10px'>Per-host firewall policy on<br />every VM. Default deny<br />inbound, trust lab subnet and<br />tailnet.</div>"]
+              style 97 fill:#c62828,stroke:#8a1c1c,color:#ffffff
+            end
+
+            subgraph 98 ["Docker engine"]
+              style 98 fill:#ffffff,stroke:#435761,color:#ffffff
+
+              100["<div style='font-weight: bold'>nginx</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: nginx:1.27-alpine]</div><div style='font-size: 80%; margin-top:10px'>Reverse proxy. Dispatches<br />*.lab.local by Host header.<br />Serves TLS with lab CA<br />wildcard cert.</div>"]
+              style 100 fill:#f57c00,stroke:#ab5600,color:#ffffff
+              101["<div style='font-weight: bold'>nginx_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: nginx/nginx-prometheus-exporter:1.3.0]</div><div style='font-size: 80%; margin-top:10px'>nginx connection metrics<br />scraped from internal<br />stub_status endpoint.</div>"]
+              style 101 fill:#00838f,stroke:#005b64,color:#ffffff
+              99["<div style='font-weight: bold'>CoreDNS</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: coredns/coredns:1.11.3]</div><div style='font-size: 80%; margin-top:10px'>Authoritative for<br />*.lab.local, forwards the<br />rest upstream, served via<br />Tailscale Split DNS</div>"]
+              style 99 fill:#f57c00,stroke:#ab5600,color:#ffffff
             end
 
           end
@@ -136,30 +178,56 @@ graph TB
 
     end
 
-    100-. "<div>Long-term metric storage<br />(remote write)</div><div style='font-size: 70%'>[S3]</div>" .->89
-    75-. "<div>Proxies grafana.lab.local<br />(planned)</div><div style='font-size: 70%'>[HTTPS]</div>" .->102
-    102-. "<div>Queries metrics</div><div style='font-size: 70%'>[HTTP]</div>" .->100
-    105-. "<div>Log chunk storage</div><div style='font-size: 70%'>[S3]</div>" .->89
-    102-. "<div>Queries logs</div><div style='font-size: 70%'>[HTTP]</div>" .->105
-    108-. "<div>Request + result metadata</div><div style='font-size: 70%'>[TCP 5432]</div>" .->88
-    108-. "<div>Model artifacts + inference<br />logs</div><div style='font-size: 70%'>[S3]</div>" .->89
-    113-. "<div>Deploys workloads</div><div style='font-size: 70%'>[kubectl/API 6443]</div>" .->77
-    113-. "<div>Job state</div><div style='font-size: 70%'>[TCP 5432]</div>" .->88
-    113-. "<div>Artifacts</div><div style='font-size: 70%'>[S3]</div>" .->89
-    113-. "<div>Queue + rate limiting</div><div style='font-size: 70%'>[RESP TCP 6379]</div>" .->91
-    120-. "<div>Applies manifests</div><div style='font-size: 70%'>[kubectl/API 6443]</div>" .->77
-    75-. "<div>Proxies arch.lab.local to<br />static site</div><div style='font-size: 70%'>[HTTPS]</div>" .->122
-    68-. "<div>Funnel: public HTTPS -><br />code-server for work-PC<br />access</div><div style='font-size: 70%'>[HTTPS]</div>" .->124
-    75-. "<div>Proxies code.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->124
-    68-. "<div>Tailnet traffic lands on the<br />lab subnet</div><div style='font-size: 70%'>[IP forwarding]</div>" .->70
-    74-. "<div>Forwards cluster.local<br />queries into k3s</div><div style='font-size: 70%'>[DNS 53]</div>" .->77
-    75-. "<div>Proxies *.lab.local to k3s<br />Services (NodePort)</div><div style='font-size: 70%'>[HTTPS]</div>" .->77
-    77-. "<div>Schedules pods</div><div style='font-size: 70%'>[HTTPS 10250]</div>" .->81
-    77-. "<div>Schedules pods</div><div style='font-size: 70%'>[HTTPS 10250]</div>" .->84
-    75-. "<div>Proxies s3.lab.local,<br />minio.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->89
-    75-. "<div>Proxies vault.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->92
-    92-. "<div>Encrypted vault blobs</div><div style='font-size: 70%'>[TCP 5432]</div>" .->88
-    95-. "<div>Reads pg_dump snapshots</div><div style='font-size: 70%'>[TCP 5432]</div>" .->88
-    95-. "<div>Backup repository</div><div style='font-size: 70%'>[S3]</div>" .->89
+    101-. "<div>Reads /stub_status</div><div style='font-size: 70%'>[HTTP]</div>" .->100
+    99-. "<div>Forwards cluster.local<br />queries into k3s</div><div style='font-size: 70%'>[DNS 53]</div>" .->104
+    100-. "<div>Proxies *.lab.local to k3s<br />Services (NodePort)</div><div style='font-size: 70%'>[HTTPS]</div>" .->104
+    104-. "<div>Schedules pods</div><div style='font-size: 70%'>[HTTPS 10250]</div>" .->110
+    104-. "<div>Schedules pods</div><div style='font-size: 70%'>[HTTPS 10250]</div>" .->115
+    100-. "<div>Proxies s3.lab.local,<br />minio.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->124
+    100-. "<div>Proxies vault.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->127
+    127-. "<div>Encrypted vault blobs</div><div style='font-size: 70%'>[TCP 5432]</div>" .->123
+    130-. "<div>Reads pg_dump snapshots</div><div style='font-size: 70%'>[TCP 5432]</div>" .->123
+    130-. "<div>Backup repository</div><div style='font-size: 70%'>[S3]</div>" .->124
+    133-. "<div>Reads pg_stat_* via<br />pg_monitor role</div><div style='font-size: 70%'>[TCP 5432]</div>" .->123
+    135-. "<div>Reads INFO + per-key stats</div><div style='font-size: 70%'>[RESP TCP 6379]</div>" .->126
+    141-. "<div>Request + result metadata</div><div style='font-size: 70%'>[TCP 5432]</div>" .->123
+    141-. "<div>Model artifacts + inference<br />logs</div><div style='font-size: 70%'>[S3]</div>" .->124
+    148-. "<div>Deploys workloads</div><div style='font-size: 70%'>[kubectl/API 6443]</div>" .->104
+    148-. "<div>Job state</div><div style='font-size: 70%'>[TCP 5432]</div>" .->123
+    148-. "<div>Artifacts</div><div style='font-size: 70%'>[S3]</div>" .->124
+    148-. "<div>Queue + rate limiting</div><div style='font-size: 70%'>[RESP TCP 6379]</div>" .->126
+    157-. "<div>Applies manifests</div><div style='font-size: 70%'>[kubectl/API 6443]</div>" .->104
+    100-. "<div>Proxies arch.lab.local to<br />static site</div><div style='font-size: 70%'>[HTTPS]</div>" .->159
+    91-. "<div>Funnel: public HTTPS -><br />code-server for work-PC<br />access</div><div style='font-size: 70%'>[HTTPS]</div>" .->161
+    100-. "<div>Proxies code.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->161
+    164-. "<div>Scrapes host metrics</div><div style='font-size: 70%'>[HTTP :9100]</div>" .->92
+    100-. "<div>Proxies prom.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->164
+    164-. "<div>Scrapes nginx metrics</div><div style='font-size: 70%'>[HTTP :9113]</div>" .->101
+    164-. "<div>Scrapes host metrics</div><div style='font-size: 70%'>[HTTP :9100]</div>" .->107
+    164-. "<div>Scrapes host metrics</div><div style='font-size: 70%'>[HTTP :9100]</div>" .->112
+    164-. "<div>Scrapes host metrics</div><div style='font-size: 70%'>[HTTP :9100]</div>" .->117
+    164-. "<div>Scrapes host metrics</div><div style='font-size: 70%'>[HTTP :9100]</div>" .->120
+    164-. "<div>Scrapes<br />/minio/v2/metrics/cluster<br />(bearer token auth)</div><div style='font-size: 70%'>[HTTP :9000]</div>" .->124
+    164-. "<div>Scrapes Postgres metrics</div><div style='font-size: 70%'>[HTTP :9187]</div>" .->133
+    164-. "<div>Scrapes Redis metrics</div><div style='font-size: 70%'>[HTTP :9121]</div>" .->135
+    164-. "<div>Scrapes host metrics</div><div style='font-size: 70%'>[HTTP :9100]</div>" .->138
+    164-. "<div>Scrapes host metrics</div><div style='font-size: 70%'>[HTTP :9100]</div>" .->145
+    164-. "<div>Scrapes host metrics</div><div style='font-size: 70%'>[HTTP :9100]</div>" .->154
+    100-. "<div>Proxies grafana.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->178
+    178-. "<div>Queries metrics</div><div style='font-size: 70%'>[HTTP]</div>" .->164
+    93-. "<div>Pushes logs (journald + files<br />+ Docker)</div><div style='font-size: 70%'>[HTTP /loki/api/v1/push]</div>" .->181
+    108-. "<div>Pushes logs (journald + files<br />+ Docker)</div><div style='font-size: 70%'>[HTTP /loki/api/v1/push]</div>" .->181
+    113-. "<div>Pushes logs (journald + files<br />+ Docker)</div><div style='font-size: 70%'>[HTTP /loki/api/v1/push]</div>" .->181
+    118-. "<div>Pushes logs (journald + files<br />+ Docker)</div><div style='font-size: 70%'>[HTTP /loki/api/v1/push]</div>" .->181
+    121-. "<div>Pushes logs (journald + files<br />+ Docker)</div><div style='font-size: 70%'>[HTTP /loki/api/v1/push]</div>" .->181
+    139-. "<div>Pushes logs (journald + files<br />+ Docker)</div><div style='font-size: 70%'>[HTTP /loki/api/v1/push]</div>" .->181
+    146-. "<div>Pushes logs (journald + files<br />+ Docker)</div><div style='font-size: 70%'>[HTTP /loki/api/v1/push]</div>" .->181
+    155-. "<div>Pushes logs (journald + files<br />+ Docker)</div><div style='font-size: 70%'>[HTTP /loki/api/v1/push]</div>" .->181
+    178-. "<div>Queries logs</div><div style='font-size: 70%'>[LogQL HTTP]</div>" .->181
+    100-. "<div>Proxies alerts.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->191
+    164-. "<div>Sends firing alert events</div><div style='font-size: 70%'>[HTTP]</div>" .->191
+    100-. "<div>Proxies ntfy.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->194
+    191-. "<div>Webhook notifications<br />(lab-alerts topic)</div><div style='font-size: 70%'>[HTTP]</div>" .->194
+    91-. "<div>Tailnet traffic lands on the<br />lab subnet</div><div style='font-size: 70%'>[IP forwarding]</div>" .->95
 
   end

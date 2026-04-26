@@ -58,12 +58,26 @@ graph TB
       subgraph group4 ["Observability layer (cross-cutting)"]
         style group4 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
 
-        24["<div style='font-weight: bold'>Prometheus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prom/prometheus]</div><div style='font-size: 80%; margin-top:10px'>Scrapes metrics from every<br />layer (details omitted);<br />long-term storage in MinIO<br />(planned)</div>"]
-        style 24 fill:#80deea,stroke:#599ba3,color:#006064
-        25["<div style='font-weight: bold'>Grafana</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/grafana]</div><div style='font-size: 80%; margin-top:10px'>Dashboards over Prometheus<br />and Loki (planned)</div>"]
-        style 25 fill:#80deea,stroke:#599ba3,color:#006064
-        26["<div style='font-weight: bold'>Loki</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/loki]</div><div style='font-size: 80%; margin-top:10px'>Log aggregation; chunks in<br />MinIO (planned)</div>"]
-        style 26 fill:#80deea,stroke:#599ba3,color:#006064
+        24["<div style='font-weight: bold'>Prometheus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prom/prometheus:v2.55.1]</div><div style='font-size: 80%; margin-top:10px'>Scrapes node, postgres,<br />redis, nginx, MinIO, grafana,<br />alertmanager, loki, ntfy.<br />30-day TSDB retention. Sends<br />alert events to Alertmanager.</div>"]
+        style 24 fill:#00838f,stroke:#005b64,color:#ffffff
+        25["<div style='font-weight: bold'>Grafana</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/grafana:11.3.0]</div><div style='font-size: 80%; margin-top:10px'>Dashboards over Prometheus<br />and Loki. Provisioned data<br />sources, six pre-loaded<br />dashboards including custom<br />Lab Overview.</div>"]
+        style 25 fill:#00838f,stroke:#005b64,color:#ffffff
+        26["<div style='font-weight: bold'>Loki</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/loki:3.4.1]</div><div style='font-size: 80%; margin-top:10px'>Log aggregation. Filesystem<br />storage, 14-day retention,<br />monolithic mode.</div>"]
+        style 26 fill:#00838f,stroke:#005b64,color:#ffffff
+        27["<div style='font-weight: bold'>Alertmanager</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prom/alertmanager:v0.27.0]</div><div style='font-size: 80%; margin-top:10px'>Routes Prometheus alerts.<br />Critical -> ntfy max<br />priority, warning -> ntfy<br />default, log receiver<br />fallback.</div>"]
+        style 27 fill:#00838f,stroke:#005b64,color:#ffffff
+        28["<div style='font-weight: bold'>ntfy</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: binwiederhier/ntfy:v2.11.0]</div><div style='font-size: 80%; margin-top:10px'>Self-hosted push<br />notifications. Receives<br />Alertmanager webhooks; phone<br />(over tailnet) subscribes to<br />lab-alerts topic.</div>"]
+        style 28 fill:#00838f,stroke:#005b64,color:#ffffff
+        29("<div style='font-weight: bold'>node_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v1.8.2 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Host metrics agent on every<br />VM (CPU, memory, disk,<br />network, systemd unit state).<br />Bound to :9100.</div>")
+        style 29 fill:#00838f,stroke:#005b64,color:#ffffff
+        30("<div style='font-weight: bold'>Promtail</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary v3.4.1 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Log shipper on every VM.<br />Tails journald, /var/log,<br />nginx logs, Docker container<br />logs. Pushes to Loki.</div>")
+        style 30 fill:#00838f,stroke:#005b64,color:#ffffff
+        31["<div style='font-weight: bold'>postgres_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prometheuscommunity/postgres-exporter:v0.16.0]</div><div style='font-size: 80%; margin-top:10px'>Postgres metrics (pg_stat_*,<br />replication, locks). Reads<br />via pg_monitor role.</div>"]
+        style 31 fill:#00838f,stroke:#005b64,color:#ffffff
+        32["<div style='font-weight: bold'>redis_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: oliver006/redis_exporter:v1.66.0]</div><div style='font-size: 80%; margin-top:10px'>Redis metrics (memory,<br />ops/sec, evictions, slow<br />log).</div>"]
+        style 32 fill:#00838f,stroke:#005b64,color:#ffffff
+        33["<div style='font-weight: bold'>nginx_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: nginx/nginx-prometheus-exporter:1.3.0]</div><div style='font-size: 80%; margin-top:10px'>nginx connection metrics<br />scraped from internal<br />stub_status endpoint.</div>"]
+        style 33 fill:#00838f,stroke:#005b64,color:#ffffff
       end
 
       subgraph group5 ["Platform layer"]
@@ -93,6 +107,10 @@ graph TB
     1-. "<div>Views lab architecture</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->12
     1-. "<div>Edits, ssh/kubectl into lab<br />via browser</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->13
     1-. "<div>Stores/retrieves lab<br />credentials</div><div style='font-size: 70%'>[HTTPS + Bitwarden clients]</div>" .->14
+    1-. "<div>Reviews dashboards and<br />queries logs</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->25
+    1-. "<div>Ad-hoc PromQL queries</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->24
+    1-. "<div>Reviews and silences alerts</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->27
+    1-. "<div>Receives push notifications<br />on phone</div><div style='font-size: 70%'>[HTTPS + ntfy app]</div>" .->28
     4-. "<div>Exposes lab subnet and routes<br />remote traffic</div><div style='font-size: 70%'>[Tailscale protocol]</div>" .->6
     22-. "<div>NAT egress via eth1</div><div style='font-size: 70%'>[IPv4 TCP/UDP]</div>" .->3
     6-. "<div>Tailnet traffic lands on the<br />lab subnet</div><div style='font-size: 70%'>[IP forwarding]</div>" .->22
@@ -101,7 +119,10 @@ graph TB
     8-. "<div>Proxies code.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->13
     8-. "<div>Proxies vault.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->14
     8-. "<div>Proxies s3.lab.local,<br />minio.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->19
-    8-. "<div>Proxies grafana.lab.local<br />(planned)</div><div style='font-size: 70%'>[HTTPS]</div>" .->25
+    8-. "<div>Proxies grafana.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->25
+    8-. "<div>Proxies prom.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->24
+    8-. "<div>Proxies alerts.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->27
+    8-. "<div>Proxies ntfy.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->28
     6-. "<div>Funnel: public HTTPS -><br />code-server for work-PC<br />access</div><div style='font-size: 70%'>[HTTPS]</div>" .->13
     7-. "<div>Forwards cluster.local<br />queries into k3s</div><div style='font-size: 70%'>[DNS 53]</div>" .->15
     15-. "<div>Schedules pods</div><div style='font-size: 70%'>[HTTPS 10250]</div>" .->16
@@ -114,10 +135,19 @@ graph TB
     14-. "<div>Encrypted vault blobs</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
     10-. "<div>Applies manifests</div><div style='font-size: 70%'>[kubectl/API 6443]</div>" .->15
     9-. "<div>Deploys workloads</div><div style='font-size: 70%'>[kubectl/API 6443]</div>" .->15
-    24-. "<div>Long-term metric storage<br />(remote write)</div><div style='font-size: 70%'>[S3]</div>" .->19
+    24-. "<div>Scrapes host metrics</div><div style='font-size: 70%'>[HTTP :9100]</div>" .->29
+    24-. "<div>Scrapes Postgres metrics</div><div style='font-size: 70%'>[HTTP :9187]</div>" .->31
+    24-. "<div>Scrapes Redis metrics</div><div style='font-size: 70%'>[HTTP :9121]</div>" .->32
+    24-. "<div>Scrapes nginx metrics</div><div style='font-size: 70%'>[HTTP :9113]</div>" .->33
+    24-. "<div>Scrapes<br />/minio/v2/metrics/cluster<br />(bearer token auth)</div><div style='font-size: 70%'>[HTTP :9000]</div>" .->19
+    24-. "<div>Sends firing alert events</div><div style='font-size: 70%'>[HTTP]</div>" .->27
+    27-. "<div>Webhook notifications<br />(lab-alerts topic)</div><div style='font-size: 70%'>[HTTP]</div>" .->28
+    30-. "<div>Pushes logs (journald + files<br />+ Docker)</div><div style='font-size: 70%'>[HTTP /loki/api/v1/push]</div>" .->26
     25-. "<div>Queries metrics</div><div style='font-size: 70%'>[HTTP]</div>" .->24
-    25-. "<div>Queries logs</div><div style='font-size: 70%'>[HTTP]</div>" .->26
-    26-. "<div>Log chunk storage</div><div style='font-size: 70%'>[S3]</div>" .->19
+    25-. "<div>Queries logs</div><div style='font-size: 70%'>[LogQL HTTP]</div>" .->26
+    31-. "<div>Reads pg_stat_* via<br />pg_monitor role</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    32-. "<div>Reads INFO + per-key stats</div><div style='font-size: 70%'>[RESP TCP 6379]</div>" .->20
+    33-. "<div>Reads /stub_status</div><div style='font-size: 70%'>[HTTP]</div>" .->8
     21-. "<div>Reads pg_dump snapshots</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
     21-. "<div>Backup repository</div><div style='font-size: 70%'>[S3]</div>" .->19
 

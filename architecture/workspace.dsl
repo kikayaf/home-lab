@@ -119,14 +119,35 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
             }
 
             group "Observability layer (cross-cutting)" {
-                prometheus = container "Prometheus" "Scrapes metrics from every layer (details omitted); long-term storage in MinIO (planned)" "Docker: prom/prometheus" {
-                    tags "ObsPlanned"
+                prometheus = container "Prometheus" "Scrapes node, postgres, redis, nginx, MinIO, grafana, alertmanager, loki, ntfy. 30-day TSDB retention. Sends alert events to Alertmanager." "Docker: prom/prometheus:v2.55.1" {
+                    tags "ObsDocker"
                 }
-                grafana = container "Grafana" "Dashboards over Prometheus and Loki (planned)" "Docker: grafana/grafana" {
-                    tags "ObsPlanned"
+                grafana = container "Grafana" "Dashboards over Prometheus and Loki. Provisioned data sources, six pre-loaded dashboards including custom Lab Overview." "Docker: grafana/grafana:11.3.0" {
+                    tags "ObsDocker"
                 }
-                loki = container "Loki" "Log aggregation; chunks in MinIO (planned)" "Docker: grafana/loki" {
-                    tags "ObsPlanned"
+                loki = container "Loki" "Log aggregation. Filesystem storage, 14-day retention, monolithic mode." "Docker: grafana/loki:3.4.1" {
+                    tags "ObsDocker"
+                }
+                alertmanager = container "Alertmanager" "Routes Prometheus alerts. Critical -> ntfy max priority, warning -> ntfy default, log receiver fallback." "Docker: prom/alertmanager:v0.27.0" {
+                    tags "ObsDocker"
+                }
+                ntfy = container "ntfy" "Self-hosted push notifications. Receives Alertmanager webhooks; phone (over tailnet) subscribes to lab-alerts topic." "Docker: binwiederhier/ntfy:v2.11.0" {
+                    tags "ObsDocker"
+                }
+                nodeExporter = container "node_exporter" "Host metrics agent on every VM (CPU, memory, disk, network, systemd unit state). Bound to :9100." "Go binary v1.8.2 · systemd" {
+                    tags "ObsNative"
+                }
+                promtail = container "Promtail" "Log shipper on every VM. Tails journald, /var/log, nginx logs, Docker container logs. Pushes to Loki." "Go binary v3.4.1 · systemd" {
+                    tags "ObsNative"
+                }
+                postgresExporter = container "postgres_exporter" "Postgres metrics (pg_stat_*, replication, locks). Reads via pg_monitor role." "Docker: prometheuscommunity/postgres-exporter:v0.16.0" {
+                    tags "ObsDocker"
+                }
+                redisExporter = container "redis_exporter" "Redis metrics (memory, ops/sec, evictions, slow log)." "Docker: oliver006/redis_exporter:v1.66.0" {
+                    tags "ObsDocker"
+                }
+                nginxExporter = container "nginx_exporter" "nginx connection metrics scraped from internal stub_status endpoint." "Docker: nginx/nginx-prometheus-exporter:1.3.0" {
+                    tags "ObsDocker"
                 }
             }
         }
@@ -142,6 +163,10 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
         operator -> homeLab.structurizr "Views lab architecture" "HTTPS browser"
         operator -> homeLab.codeServer "Edits, ssh/kubectl into lab via browser" "HTTPS browser"
         operator -> homeLab.vaultwarden "Stores/retrieves lab credentials" "HTTPS + Bitwarden clients"
+        operator -> homeLab.grafana "Reviews dashboards and queries logs" "HTTPS browser"
+        operator -> homeLab.prometheus "Ad-hoc PromQL queries" "HTTPS browser"
+        operator -> homeLab.alertmanager "Reviews and silences alerts" "HTTPS browser"
+        operator -> homeLab.ntfy "Receives push notifications on phone" "HTTPS + ntfy app"
 
         // External routing
         tailnet -> homeLab.tailscale "Exposes lab subnet and routes remote traffic" "Tailscale protocol"
@@ -155,7 +180,10 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
         homeLab.nginx -> homeLab.codeServer "Proxies code.lab.local" "HTTPS"
         homeLab.nginx -> homeLab.vaultwarden "Proxies vault.lab.local" "HTTPS"
         homeLab.nginx -> homeLab.minio "Proxies s3.lab.local, minio.lab.local" "HTTPS"
-        homeLab.nginx -> homeLab.grafana "Proxies grafana.lab.local (planned)" "HTTPS"
+        homeLab.nginx -> homeLab.grafana "Proxies grafana.lab.local" "HTTPS"
+        homeLab.nginx -> homeLab.prometheus "Proxies prom.lab.local" "HTTPS"
+        homeLab.nginx -> homeLab.alertmanager "Proxies alerts.lab.local" "HTTPS"
+        homeLab.nginx -> homeLab.ntfy "Proxies ntfy.lab.local" "HTTPS"
         homeLab.tailscale -> homeLab.codeServer "Funnel: public HTTPS -> code-server for work-PC access" "HTTPS"
         homeLab.coredns -> homeLab.k3sServer "Forwards cluster.local queries into k3s" "DNS 53"
 
@@ -175,11 +203,20 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
         homeLab.devtools -> homeLab.k3sServer "Applies manifests" "kubectl/API 6443"
         homeLab.workflows -> homeLab.k3sServer "Deploys workloads" "kubectl/API 6443"
 
-        // Observability (trimmed to the essential edges)
-        homeLab.prometheus -> homeLab.minio "Long-term metric storage (remote write)" "S3"
+        // Observability edges
+        homeLab.prometheus -> homeLab.nodeExporter "Scrapes host metrics" "HTTP :9100"
+        homeLab.prometheus -> homeLab.postgresExporter "Scrapes Postgres metrics" "HTTP :9187"
+        homeLab.prometheus -> homeLab.redisExporter "Scrapes Redis metrics" "HTTP :9121"
+        homeLab.prometheus -> homeLab.nginxExporter "Scrapes nginx metrics" "HTTP :9113"
+        homeLab.prometheus -> homeLab.minio "Scrapes /minio/v2/metrics/cluster (bearer token auth)" "HTTP :9000"
+        homeLab.prometheus -> homeLab.alertmanager "Sends firing alert events" "HTTP"
+        homeLab.alertmanager -> homeLab.ntfy "Webhook notifications (lab-alerts topic)" "HTTP"
+        homeLab.promtail -> homeLab.loki "Pushes logs (journald + files + Docker)" "HTTP /loki/api/v1/push"
         homeLab.grafana -> homeLab.prometheus "Queries metrics" "HTTP"
-        homeLab.grafana -> homeLab.loki "Queries logs" "HTTP"
-        homeLab.loki -> homeLab.minio "Log chunk storage" "S3"
+        homeLab.grafana -> homeLab.loki "Queries logs" "LogQL HTTP"
+        homeLab.postgresExporter -> homeLab.postgres "Reads pg_stat_* via pg_monitor role" "TCP 5432"
+        homeLab.redisExporter -> homeLab.redis "Reads INFO + per-key stats" "RESP TCP 6379"
+        homeLab.nginxExporter -> homeLab.nginx "Reads /stub_status" "HTTP"
 
         // Backups
         homeLab.restic -> homeLab.postgres "Reads pg_dump snapshots" "TCP 5432"
@@ -202,6 +239,8 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
 
                             systemdGW = deploymentNode "systemd" "Init + service manager" {
                                 containerInstance homeLab.tailscale
+                                containerInstance homeLab.nodeExporter
+                                containerInstance homeLab.promtail
                             }
                             kernelGW = deploymentNode "Linux kernel" "netfilter" {
                                 containerInstance homeLab.iptables
@@ -211,26 +250,35 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
                                 tags "ContainerRuntime"
                                 containerInstance homeLab.coredns
                                 containerInstance homeLab.nginx
+                                containerInstance homeLab.nginxExporter
                             }
                         }
 
                         cpVM = deploymentNode "lab-k3s-controlplane VM (.202)" "Ubuntu 24.04" {
                             tags "VM"
                             containerInstance homeLab.k3sServer
+                            containerInstance homeLab.nodeExporter
+                            containerInstance homeLab.promtail
                         }
 
                         n1VM = deploymentNode "lab-k3s-node01 VM (.203)" "Ubuntu 24.04" {
                             tags "VM"
                             containerInstance homeLab.k3sAgent01
+                            containerInstance homeLab.nodeExporter
+                            containerInstance homeLab.promtail
                         }
 
                         n2VM = deploymentNode "lab-k3s-node02 VM (.204)" "Ubuntu 24.04" {
                             tags "VM"
                             containerInstance homeLab.k3sAgent02
+                            containerInstance homeLab.nodeExporter
+                            containerInstance homeLab.promtail
                         }
 
                         dsVM = deploymentNode "lab-datastore VM (.205)" "Ubuntu 24.04" {
                             tags "VM"
+                            containerInstance homeLab.nodeExporter
+                            containerInstance homeLab.promtail
                             dockerDS = deploymentNode "Docker engine" "containerd + Docker daemon" {
                                 tags "ContainerRuntime"
                                 containerInstance homeLab.postgres
@@ -238,22 +286,25 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
                                 containerInstance homeLab.redis
                                 containerInstance homeLab.vaultwarden
                                 containerInstance homeLab.restic
+                                containerInstance homeLab.postgresExporter
+                                containerInstance homeLab.redisExporter
                             }
                         }
 
                         aiVM = deploymentNode "lab-ai-ops VM (.206)" "Ubuntu 24.04" {
                             tags "VM"
+                            containerInstance homeLab.nodeExporter
+                            containerInstance homeLab.promtail
                             dockerAI = deploymentNode "Docker engine" "containerd + Docker daemon" {
                                 tags "ContainerRuntime"
-                                containerInstance homeLab.prometheus
-                                containerInstance homeLab.grafana
-                                containerInstance homeLab.loki
                                 containerInstance homeLab.modelServer
                             }
                         }
 
                         autoVM = deploymentNode "lab-automation VM (.207)" "Ubuntu 24.04" {
                             tags "VM"
+                            containerInstance homeLab.nodeExporter
+                            containerInstance homeLab.promtail
                             dockerAuto = deploymentNode "Docker engine" "containerd + Docker daemon" {
                                 tags "ContainerRuntime"
                                 containerInstance homeLab.workflows
@@ -262,11 +313,18 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
 
                         peVM = deploymentNode "lab-platform-eng VM (.208)" "Ubuntu 24.04" {
                             tags "VM"
+                            containerInstance homeLab.nodeExporter
+                            containerInstance homeLab.promtail
                             dockerPE = deploymentNode "Docker engine" "containerd + Docker daemon" {
                                 tags "ContainerRuntime"
                                 containerInstance homeLab.devtools
                                 containerInstance homeLab.structurizr
                                 containerInstance homeLab.codeServer
+                                containerInstance homeLab.prometheus
+                                containerInstance homeLab.grafana
+                                containerInstance homeLab.loki
+                                containerInstance homeLab.alertmanager
+                                containerInstance homeLab.ntfy
                             }
                         }
                     }
@@ -363,9 +421,14 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
                 color "#ffffff"
             }
 
-            // Observability layer: teal.
+            // Observability layer: teal. Hexagon = Docker, RoundedBox = native daemon.
             element "ObsDocker" {
                 shape hexagon
+                background "#00838f"
+                color "#ffffff"
+            }
+            element "ObsNative" {
+                shape roundedBox
                 background "#00838f"
                 color "#ffffff"
             }
