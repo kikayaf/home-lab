@@ -81,7 +81,27 @@ Using the Structurizr CLI (`docker run --rm -v "${PWD}:/usr/local/structurizr" s
 - `structurizr-cli export -workspace workspace.dsl -format plantuml/c4plantuml` - generates PlantUML
 - `structurizr-cli export -workspace workspace.dsl -format dot` - Graphviz
 
-Mermaid export is what to use when embedding a view directly into a README.
+Mermaid export is what to use when embedding a view directly into a README. We have this wired up automatically via [`./generate-mermaid.ps1`](./generate-mermaid.ps1); see the next section.
+
+## Mermaid views (auto-generated)
+
+Pre-rendered Mermaid views live in [`./views/`](./views/) and are committed alongside the DSL so GitHub renders them inline without needing to spin up Structurizr.
+
+Workflow:
+
+1. Edit `workspace.dsl`
+2. Run `.\architecture\generate-mermaid.ps1` from PowerShell (uses Structurizr CLI on lab-platform-eng over SSH; pulls `.mmd` files back to `architecture/views/`)
+3. Commit the DSL change + the regenerated views together
+
+The script wipes stale views first, so removing a view from the DSL also removes its `.mmd` file. Open the `views/` folder for the per-view files. Embed in any markdown via:
+
+````markdown
+```mermaid
+{{< include "architecture/views/Containers.mmd" >}}
+```
+````
+
+(GitHub doesn't support that include syntax directly; either copy the contents into a markdown code fence, or just link to the file: [`./views/Containers.mmd`](./views/Containers.mmd) - GitHub renders standalone `.mmd` files as Mermaid diagrams.)
 
 ## Conventions in the DSL
 

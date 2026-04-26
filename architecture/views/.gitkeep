@@ -1,0 +1,6 @@
+# Generated Mermaid views from workspace.dsl. Re-render with:
+#   .\architecture\generate-mermaid.ps1
+#
+# Files in this directory are auto-generated. Do not hand-edit; edits will
+# be overwritten on the next regeneration. Commit them alongside DSL edits
+# so GitHub renders fresh diagrams in markdown.

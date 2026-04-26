@@ -1,0 +1,124 @@
+graph TB
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Container View: Home Lab"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>Operator</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Admin and primary user of the<br />lab</div>"]
+    style 1 fill:#1168bd,stroke:#0b4884,color:#ffffff
+    3("<div style='font-weight: bold'>Home network</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>ISP router, 192.168.1.0/24,<br />gateway .254</div>")
+    style 3 fill:#546e7a,stroke:#3a4d55,color:#ffffff
+    4("<div style='font-weight: bold'>Tailscale tailnet</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Mesh VPN for remote admin and<br />subnet routing</div>")
+    style 4 fill:#546e7a,stroke:#3a4d55,color:#ffffff
+
+    subgraph 5 ["Home Lab"]
+      style 5 fill:#ffffff,stroke:#052e56,color:#052e56
+
+      subgraph group1 ["Application layer"]
+        style group1 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        10["<div style='font-weight: bold'>Platform tools</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>IaC runners, templating,<br />internal CLI sandbox<br />(planned)</div>"]
+        style 10 fill:#90caf9,stroke:#648dae,color:#0d47a1
+        11["<div style='font-weight: bold'>Model serving</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>AI/ML model inference<br />endpoint (planned)</div>"]
+        style 11 fill:#90caf9,stroke:#648dae,color:#0d47a1
+        12["<div style='font-weight: bold'>Structurizr site</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: ghcr.io/avisi-cloud/structurizr-site-generatr]</div><div style='font-size: 80%; margin-top:10px'>Static site rendered from<br />this workspace.dsl; makes the<br />architecture diagrams<br />available at arch.lab.local</div>"]
+        style 12 fill:#1976d2,stroke:#115293,color:#ffffff
+        13["<div style='font-weight: bold'>code-server</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: codercom/code-server:4.95.3]</div><div style='font-size: 80%; margin-top:10px'>Browser VS Code. Internal at<br />code.lab.local; public via<br />Tailscale Funnel for work-PC<br />use.</div>"]
+        style 13 fill:#1976d2,stroke:#115293,color:#ffffff
+        14["<div style='font-weight: bold'>Vaultwarden</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: vaultwarden/server:1.35.7]</div><div style='font-size: 80%; margin-top:10px'>Self-hosted<br />Bitwarden-compatible password<br />manager. HTTPS at<br />vault.lab.local.<br />Postgres-backed.</div>"]
+        style 14 fill:#1976d2,stroke:#115293,color:#ffffff
+        9["<div style='font-weight: bold'>Workflow runner</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>Scheduled jobs, CI agents,<br />operational automation<br />(planned)</div>"]
+        style 9 fill:#90caf9,stroke:#648dae,color:#0d47a1
+      end
+
+      subgraph group2 ["Data layer"]
+        style group2 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        18["<div style='font-weight: bold'>PostgreSQL</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: pgvector/pgvector:0.8.0-pg16]</div><div style='font-size: 80%; margin-top:10px'>Primary OLTP store, one<br />logical database per app.<br />pgvector 0.8.0 extension<br />available.</div>"]
+        style 18 fill:#2e7d32,stroke:#205723,color:#ffffff
+        19["<div style='font-weight: bold'>MinIO</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: minio/minio]</div><div style='font-size: 80%; margin-top:10px'>S3-compatible object storage.<br />API at s3.lab.local, console<br />at minio.lab.local.</div>"]
+        style 19 fill:#2e7d32,stroke:#205723,color:#ffffff
+        20["<div style='font-weight: bold'>Redis</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: redis:7-alpine]</div><div style='font-size: 80%; margin-top:10px'>In-memory cache + simple<br />queue. AOF + LRU eviction at<br />256 MB.</div>"]
+        style 20 fill:#2e7d32,stroke:#205723,color:#ffffff
+        21["<div style='font-weight: bold'>restic</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: restic/restic]</div><div style='font-size: 80%; margin-top:10px'>Encrypted backups of Postgres<br />+ critical volumes to MinIO<br />and offsite (planned)</div>"]
+        style 21 fill:#a5d6a7,stroke:#739574,color:#1b5e20
+      end
+
+      subgraph group3 ["Edge and Access layer"]
+        style group3 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        6("<div style='font-weight: bold'>Tailscale</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go · systemd]</div><div style='font-size: 80%; margin-top:10px'>Subnet router<br />(192.168.100.0/24 into<br />tailnet) + Tailscale SSH +<br />Funnel for work-PC access</div>")
+        style 6 fill:#f57c00,stroke:#ab5600,color:#ffffff
+        7["<div style='font-weight: bold'>CoreDNS</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: coredns/coredns:1.11.3]</div><div style='font-size: 80%; margin-top:10px'>Authoritative for<br />*.lab.local, forwards the<br />rest upstream, served via<br />Tailscale Split DNS</div>"]
+        style 7 fill:#f57c00,stroke:#ab5600,color:#ffffff
+        8["<div style='font-weight: bold'>nginx</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: nginx:1.27-alpine]</div><div style='font-size: 80%; margin-top:10px'>Reverse proxy. Dispatches<br />*.lab.local by Host header.<br />Serves TLS with lab CA<br />wildcard cert.</div>"]
+        style 8 fill:#f57c00,stroke:#ab5600,color:#ffffff
+      end
+
+      subgraph group4 ["Observability layer (cross-cutting)"]
+        style group4 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        24["<div style='font-weight: bold'>Prometheus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prom/prometheus]</div><div style='font-size: 80%; margin-top:10px'>Scrapes metrics from every<br />layer (details omitted);<br />long-term storage in MinIO<br />(planned)</div>"]
+        style 24 fill:#80deea,stroke:#599ba3,color:#006064
+        25["<div style='font-weight: bold'>Grafana</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/grafana]</div><div style='font-size: 80%; margin-top:10px'>Dashboards over Prometheus<br />and Loki (planned)</div>"]
+        style 25 fill:#80deea,stroke:#599ba3,color:#006064
+        26["<div style='font-weight: bold'>Loki</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/loki]</div><div style='font-size: 80%; margin-top:10px'>Log aggregation; chunks in<br />MinIO (planned)</div>"]
+        style 26 fill:#80deea,stroke:#599ba3,color:#006064
+      end
+
+      subgraph group5 ["Platform layer"]
+        style group5 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        15("<div style='font-weight: bold'>k3s server</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34.6 · systemd]</div><div style='font-size: 80%; margin-top:10px'>Kubernetes API, scheduler,<br />controller-manager, embedded<br />SQLite. Traefik disabled<br />(nginx owns ingress).</div>")
+        style 15 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
+        16("<div style='font-weight: bold'>k3s agent (node01)</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34.6 · systemd]</div><div style='font-size: 80%; margin-top:10px'>kubelet + containerd, hosts<br />workload pods</div>")
+        style 16 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
+        17("<div style='font-weight: bold'>k3s agent (node02)</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34.6 · systemd]</div><div style='font-size: 80%; margin-top:10px'>kubelet + containerd, hosts<br />workload pods</div>")
+        style 17 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
+      end
+
+      subgraph group6 ["Security layer (cross-cutting)"]
+        style group6 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        22["<div style='font-weight: bold'>iptables NAT</div><div style='font-size: 70%; margin-top: 0px'>[Container: Kernel netfilter]</div><div style='font-size: 80%; margin-top:10px'>Masquerades lab egress from<br />192.168.100.0/24 through eth1<br />on the home network</div>"]
+        style 22 fill:#c62828,stroke:#8a1c1c,color:#ffffff
+        23["<div style='font-weight: bold'>ufw</div><div style='font-size: 70%; margin-top: 0px'>[Container: Kernel netfilter]</div><div style='font-size: 80%; margin-top:10px'>Per-host firewall policy on<br />every VM. Default deny<br />inbound, trust lab subnet and<br />tailnet.</div>"]
+        style 23 fill:#c62828,stroke:#8a1c1c,color:#ffffff
+      end
+
+    end
+
+    1-. "<div>Connects remotely via</div><div style='font-size: 70%'>[Tailscale client]</div>" .->4
+    1-. "<div>Remote admin over SSH</div><div style='font-size: 70%'>[SSH via Tailscale]</div>" .->6
+    1-. "<div>Views lab architecture</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->12
+    1-. "<div>Edits, ssh/kubectl into lab<br />via browser</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->13
+    1-. "<div>Stores/retrieves lab<br />credentials</div><div style='font-size: 70%'>[HTTPS + Bitwarden clients]</div>" .->14
+    4-. "<div>Exposes lab subnet and routes<br />remote traffic</div><div style='font-size: 70%'>[Tailscale protocol]</div>" .->6
+    22-. "<div>NAT egress via eth1</div><div style='font-size: 70%'>[IPv4 TCP/UDP]</div>" .->3
+    6-. "<div>Tailnet traffic lands on the<br />lab subnet</div><div style='font-size: 70%'>[IP forwarding]</div>" .->22
+    8-. "<div>Proxies *.lab.local to k3s<br />Services (NodePort)</div><div style='font-size: 70%'>[HTTPS]</div>" .->15
+    8-. "<div>Proxies arch.lab.local to<br />static site</div><div style='font-size: 70%'>[HTTPS]</div>" .->12
+    8-. "<div>Proxies code.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->13
+    8-. "<div>Proxies vault.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->14
+    8-. "<div>Proxies s3.lab.local,<br />minio.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->19
+    8-. "<div>Proxies grafana.lab.local<br />(planned)</div><div style='font-size: 70%'>[HTTPS]</div>" .->25
+    6-. "<div>Funnel: public HTTPS -><br />code-server for work-PC<br />access</div><div style='font-size: 70%'>[HTTPS]</div>" .->13
+    7-. "<div>Forwards cluster.local<br />queries into k3s</div><div style='font-size: 70%'>[DNS 53]</div>" .->15
+    15-. "<div>Schedules pods</div><div style='font-size: 70%'>[HTTPS 10250]</div>" .->16
+    15-. "<div>Schedules pods</div><div style='font-size: 70%'>[HTTPS 10250]</div>" .->17
+    9-. "<div>Job state</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    9-. "<div>Artifacts</div><div style='font-size: 70%'>[S3]</div>" .->19
+    9-. "<div>Queue + rate limiting</div><div style='font-size: 70%'>[RESP TCP 6379]</div>" .->20
+    11-. "<div>Model artifacts + inference<br />logs</div><div style='font-size: 70%'>[S3]</div>" .->19
+    11-. "<div>Request + result metadata</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    14-. "<div>Encrypted vault blobs</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    10-. "<div>Applies manifests</div><div style='font-size: 70%'>[kubectl/API 6443]</div>" .->15
+    9-. "<div>Deploys workloads</div><div style='font-size: 70%'>[kubectl/API 6443]</div>" .->15
+    24-. "<div>Long-term metric storage<br />(remote write)</div><div style='font-size: 70%'>[S3]</div>" .->19
+    25-. "<div>Queries metrics</div><div style='font-size: 70%'>[HTTP]</div>" .->24
+    25-. "<div>Queries logs</div><div style='font-size: 70%'>[HTTP]</div>" .->26
+    26-. "<div>Log chunk storage</div><div style='font-size: 70%'>[S3]</div>" .->19
+    21-. "<div>Reads pg_dump snapshots</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    21-. "<div>Backup repository</div><div style='font-size: 70%'>[S3]</div>" .->19
+
+  end

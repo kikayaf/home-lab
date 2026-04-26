@@ -1,0 +1,21 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["System Context View: Home Lab"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>Operator</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Admin and primary user of the<br />lab</div>"]
+    style 1 fill:#1168bd,stroke:#0b4884,color:#ffffff
+    3("<div style='font-weight: bold'>Home network</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>ISP router, 192.168.1.0/24,<br />gateway .254</div>")
+    style 3 fill:#546e7a,stroke:#3a4d55,color:#ffffff
+    4("<div style='font-weight: bold'>Tailscale tailnet</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Mesh VPN for remote admin and<br />subnet routing</div>")
+    style 4 fill:#546e7a,stroke:#3a4d55,color:#ffffff
+    5["<div style='font-weight: bold'>Home Lab</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Seven-VM Ubuntu cluster on<br />Hyper-V. Lab subnet<br />192.168.100.0/24, isolated<br />behind NAT.</div>"]
+    style 5 fill:#08427b,stroke:#052e56,color:#ffffff
+
+    1-. "<div>Connects remotely via</div><div style='font-size: 70%'>[Tailscale client]</div>" .->4
+    1-. "<div>Remote admin over SSH</div><div style='font-size: 70%'>[SSH via Tailscale]</div>" .->5
+    4-. "<div>Exposes lab subnet and routes<br />remote traffic</div><div style='font-size: 70%'>[Tailscale protocol]</div>" .->5
+    5-. "<div>NAT egress via eth1</div><div style='font-size: 70%'>[IPv4 TCP/UDP]</div>" .->3
+
+  end
