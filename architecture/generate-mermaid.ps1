@@ -62,12 +62,15 @@ Write-Host "==> Injecting Mermaid init block + restyling layer subgraphs"
 $initBlock = @"
 %%{init: {
   "theme": "default",
-  "themeVariables": {"fontSize": "12px", "fontFamily": "arial"},
+  "themeVariables": {"fontSize": "14px", "fontFamily": "arial"},
   "flowchart": {
     "defaultRenderer": "elk",
-    "rankSpacing": 50,
-    "nodeSpacing": 30,
-    "padding": 8,
+    "useMaxWidth": false,
+    "htmlLabels": true,
+    "rankSpacing": 90,
+    "nodeSpacing": 60,
+    "padding": 20,
+    "wrappingWidth": 280,
     "curve": "basis"
   }
 }}%%
