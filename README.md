@@ -141,9 +141,9 @@ Landing actual services on top of the platform. Progress:
 | 3.7 | Redis on `lab-datastore` | Done |
 | 3.9 | Vaultwarden on `lab-datastore` (self-hosted password vault) | Done |
 | 3.10 | Wildcard TLS for `*.lab.local` (mkcert) | Done |
+| 3.11 | Structurizr static site on `lab-platform-eng` (self-documenting) | Done |
+| 3.12 | Observability stack: Prometheus + Grafana + Loki + Alertmanager on `lab-platform-eng`, exporters on every VM | Done |
 | later | restic backup automation | Planned |
-| later | observability stack on `lab-ai-ops` | Planned |
-| later | Structurizr Lite on `lab-platform-eng` (self-documenting) | Planned |
 | later | Workflow runner on `lab-automation` | Planned |
 | later | Cloudflare Tunnel + Access migration (from Tailscale Funnel) | Planned |
 

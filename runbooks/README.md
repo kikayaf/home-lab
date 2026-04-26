@@ -21,6 +21,7 @@ These are the authoritative "how it actually happened" record. Architecture inte
 | [`stage-3-redis.md`](./stage-3-redis.md) | Stage 3 step 7: Redis on `lab-datastore` | Done |
 | [`stage-3-vaultwarden.md`](./stage-3-vaultwarden.md) | Stage 3 step 9: Vaultwarden (self-hosted password vault) on `lab-datastore` | Done |
 | [`stage-3-wildcard-tls.md`](./stage-3-wildcard-tls.md) | Stage 3 step 10: wildcard TLS for `*.lab.local` via mkcert | Done |
+| [`stage-3-observability.md`](./stage-3-observability.md) | Stage 3 step 12: Prometheus + Grafana + Loki + Alertmanager on `lab-platform-eng`, exporters on every VM | Done |
 
 Stage 1 (provisioning the 8-VM fleet from a template) is automated end to end in [`../scripts/`](../scripts/) and doesn't need a runbook, the scripts are the runbook.
 

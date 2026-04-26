@@ -49,11 +49,12 @@ Services you actually use or demo. Mostly land as k3s Deployments exposed via ng
 
 | Item | What it is | Placement | Trigger to add |
 |---|---|---|---|
-| **Structurizr Lite** | Renders `architecture/workspace.dsl` at `arch.lab.local` | `lab-platform-eng` or k3s | Closes the self-documenting loop |
-| **Prometheus** | Metrics scrape + TSDB | k3s (or `lab-ai-ops` Docker) | First observability move |
-| **Grafana** | Dashboards, alerting UI | k3s | Pairs with Prometheus + Loki |
-| **Loki** | Log aggregation (LogQL) | k3s | For cluster and service logs |
-| **Promtail / Alloy** | Log shipper for Loki | DaemonSet on k3s nodes | Companion to Loki |
+| **Structurizr Lite** | Renders `architecture/workspace.dsl` at `arch.lab.local` | `lab-platform-eng` Docker | Done in stage 3.11 (with caveats about renderer, see Ideas worth revisiting) |
+| **Prometheus** | Metrics scrape + TSDB | `lab-platform-eng` Docker | Done in stage 3.12 |
+| **Grafana** | Dashboards, alerting UI | `lab-platform-eng` Docker | Done in stage 3.12 |
+| **Loki** | Log aggregation (LogQL) | `lab-platform-eng` Docker | Done in stage 3.12 |
+| **Promtail** | Log shipper for Loki | systemd binary on every VM | Done in stage 3.12 |
+| **Alertmanager** | Alert routing | `lab-platform-eng` Docker | Done in stage 3.12 |
 | **code-server** | VS Code in browser | `lab-platform-eng` + Tailscale Funnel | Scheduled: stage 3.8. Unblocks work-PC access |
 | **Keycloak** or **Authentik** | SSO / OIDC provider | k3s | When multiple services start sharing identity |
 | **Homepage / Heimdall** | Dashboard of lab links | k3s, exposed at `home.lab.local` | Quality-of-life |
@@ -140,13 +141,15 @@ Any of:
 
 | Item | Trigger |
 |---|---|
-| Backup automation: `pg_dump` + `restic` to MinIO and offsite (B2) | Right after Postgres lands |
-| Monitoring lab itself (prometheus node_exporter on every VM, alerts on disk/mem/CPU) | After observability stack lands |
+| Backup automation: `pg_dump` + `restic` to MinIO and offsite (B2) | Right after Postgres lands. Now urgent: the data tier (Postgres, MinIO, Redis, Vaultwarden) has real state and zero protection |
+| Wire Alertmanager to Slack / email / webhook | After the rules have been tuned for a week and we know what's noisy |
 | Automated k3s upgrades (via system-upgrade-controller) | Once we're past the learning-k3s phase |
 | Deployment via GitOps (ArgoCD or FluxCD) instead of manual `kubectl apply` | When manifest count grows past 5-10 |
 | Centralized config for Docker services on lab-gateway (compose instead of raw `docker run`) | If we add more than 3 services there |
 | Per-VM `apt upgrade` automation (unattended-upgrades or scheduled reboots) | Whenever |
-| Log shipping for Docker services on non-k3s VMs (promtail/alloy) | After Loki lands |
+| Long-term metric retention via VictoriaMetrics + remote_write | If we ever want to look at trends beyond 30 days. Today Prometheus retention is 30d wall-clock |
+| Loki retention beyond 14 days | Same trigger; today Loki keeps 14 days |
+| k3s pod log shipping into Loki | When the first k3s workload that we actually care about lands. Today the Promtail Docker scrape doesn't match anything on lab-k3s-* nodes |
 
 ## Self-documenting infrastructure
 
@@ -187,6 +190,10 @@ Thoughts we had that didn't graduate to a concrete item yet. Not actionable; cap
 - Move the architecture DSL rendering into a GitHub Action so every commit updates rendered SVGs attached to the repo.
 - Consider a proper secrets-management tool (Vault, Bitwarden CLI, 1Password Connect, age+sops in git) once we have more than a handful of secrets. See the dedicated section below.
 - ARM support: none of the lab VMs are ARM today, but keeping images multi-arch where possible (most already are) would let us add a Raspberry Pi to the tailnet later and pull its weight.
+
+- **Better renderer for the architecture site.** structurizr-site-generatr (current choice) renders the Structurizr DSL via C4-PlantUML, which doesn't honor custom element-tag styles. Containers all draw as default blue rectangles; group boundaries and layer labels carry the visual signal but not per-layer colors. Options to revisit: (a) switch to Structurizr Cloud (paste DSL, get colored SVGs, serve static); (b) export to Mermaid via Structurizr CLI and serve those; (c) use IcePanel free tier; (d) live with monochrome since the layered structure is still legible. Trigger to revisit: when we have stakeholders viewing the diagrams or when we're feeling fastidious. Today's priority is workloads.
+
+- **Per-container metrics (cAdvisor or alternative).** Tried cAdvisor v0.49.1 and v0.51.0 during stage 3.12; both hardcode `image/overlayfs/` in the Docker layer-DB lookup but modern Docker uses `image/overlay2/`. Symlink workaround silenced the layerdb errors but per-container scopes still didn't surface as series. For now we live without per-container Prometheus metrics; node_exporter + per-service exporters + `docker stats` for ad-hoc checks cover the ground. Options to revisit: (a) wait for upstream cAdvisor fix; (b) use Docker daemon's native `metrics-addr` (engine-level only, not per-container); (c) try a different exporter (process_exporter, container-exporter); (d) move to k3s where the kubelet already exposes container metrics natively. Trigger to revisit: when we have many more containers and "what's hot right now" needs answering without SSH.
 
 ## Password vaults and secret management
 
