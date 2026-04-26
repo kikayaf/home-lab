@@ -1,0 +1,82 @@
+# =============================================================================
+# Promtail config for the home lab
+# =============================================================================
+# Single config used on every VM. Promtail silently skips scrape configs
+# whose target paths don't exist, so the same file works on hosts with /
+# without nginx, on Docker hosts and non-Docker hosts, etc.
+#
+# Mounted at /etc/promtail/promtail-config.yml inside the systemd unit and
+# overlaid with HOSTNAME via env so the host label is set per-VM.
+# =============================================================================
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: info
+
+positions:
+  filename: /var/lib/promtail/positions.yaml
+
+clients:
+  - url: http://192.168.100.208:3100/loki/api/v1/push
+    backoff_config:
+      min_period: 500ms
+      max_period: 5m
+      max_retries: 10
+    batchwait: 1s
+    batchsize: 1048576
+
+scrape_configs:
+
+  # ---------------------------------------------------------------------------
+  # systemd journal: every VM has this, so this scrape always produces logs
+  # ---------------------------------------------------------------------------
+  - job_name: journal
+    journal:
+      max_age: 12h
+      labels:
+        job: systemd-journal
+    relabel_configs:
+      - source_labels: ['__journal__systemd_unit']
+        target_label: 'unit'
+      - source_labels: ['__journal__hostname']
+        target_label: 'host'
+      - source_labels: ['__journal_priority_keyword']
+        target_label: 'level'
+
+  # ---------------------------------------------------------------------------
+  # nginx access + error logs (only matches on lab-gateway)
+  # Both access and error land under job=nginx; differentiate by filename
+  # via the `filename` label that Promtail sets automatically.
+  # ---------------------------------------------------------------------------
+  - job_name: nginx
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: nginx
+          host: ${HOSTNAME}
+          __path__: /var/log/nginx/*.log
+
+  # ---------------------------------------------------------------------------
+  # Docker container logs (only matches on Docker hosts)
+  # The container_id can be parsed out of the filename in Grafana with a
+  # LogQL `regexp` filter; not labeling here avoids cardinality concerns.
+  # ---------------------------------------------------------------------------
+  - job_name: docker
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: docker
+          host: ${HOSTNAME}
+          __path__: /var/lib/docker/containers/*/*-json.log
+
+  # ---------------------------------------------------------------------------
+  # /var/log/syslog and other catch-all text logs (varies per VM)
+  # ---------------------------------------------------------------------------
+  - job_name: varlogs
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: varlogs
+          host: ${HOSTNAME}
+          __path__: /var/log/{syslog,auth.log,kern.log,dpkg.log}
