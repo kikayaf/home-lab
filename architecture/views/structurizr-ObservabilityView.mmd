@@ -1,0 +1,81 @@
+graph TB
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Container View: Home Lab"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>Operator</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Admin and primary user of the<br />lab</div>"]
+    style 1 fill:#1168bd,stroke:#0b4884,color:#ffffff
+
+    subgraph 5 ["Home Lab"]
+      style 5 fill:#ffffff,stroke:#052e56,color:#052e56
+
+      subgraph group1 ["Data layer"]
+        style group1 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        18["<div style='font-weight: bold'>PostgreSQL</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: pgvector/pgvector:0.8.0-pg16]</div><div style='font-size: 80%; margin-top:10px'>OLTP + pgvector. One DB per<br />app.</div>"]
+        style 18 fill:#2e7d32,stroke:#205723,color:#ffffff
+        19["<div style='font-weight: bold'>MinIO</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: minio/minio]</div><div style='font-size: 80%; margin-top:10px'>S3 storage at s3.lab.local +<br />console at minio.lab.local</div>"]
+        style 19 fill:#2e7d32,stroke:#205723,color:#ffffff
+        20["<div style='font-weight: bold'>Redis</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: redis:7-alpine]</div><div style='font-size: 80%; margin-top:10px'>Cache + queue. AOF + LRU at<br />256 MB.</div>"]
+        style 20 fill:#2e7d32,stroke:#205723,color:#ffffff
+      end
+
+      subgraph group2 ["Edge and Access layer"]
+        style group2 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        8["<div style='font-weight: bold'>nginx</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: nginx:1.27-alpine]</div><div style='font-size: 80%; margin-top:10px'>Reverse proxy. Routes<br />*.lab.local by Host header.<br />Wildcard TLS.</div>"]
+        style 8 fill:#f57c00,stroke:#ab5600,color:#ffffff
+      end
+
+      subgraph group3 ["Observability layer (cross-cutting)"]
+        style group3 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        24["<div style='font-weight: bold'>Prometheus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prom/prometheus]</div><div style='font-size: 80%; margin-top:10px'>Metrics TSDB. 30d retention.</div>"]
+        style 24 fill:#00838f,stroke:#005b64,color:#ffffff
+        25["<div style='font-weight: bold'>Grafana</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/grafana]</div><div style='font-size: 80%; margin-top:10px'>Dashboards + Explore at<br />grafana.lab.local</div>"]
+        style 25 fill:#00838f,stroke:#005b64,color:#ffffff
+        26["<div style='font-weight: bold'>Loki</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: grafana/loki]</div><div style='font-size: 80%; margin-top:10px'>Log aggregation. 14d<br />retention.</div>"]
+        style 26 fill:#00838f,stroke:#005b64,color:#ffffff
+        27["<div style='font-weight: bold'>Alertmanager</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prom/alertmanager]</div><div style='font-size: 80%; margin-top:10px'>Routes alerts to ntfy by<br />severity</div>"]
+        style 27 fill:#00838f,stroke:#005b64,color:#ffffff
+        28["<div style='font-weight: bold'>ntfy</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: binwiederhier/ntfy]</div><div style='font-size: 80%; margin-top:10px'>Push notifications at<br />ntfy.lab.local</div>"]
+        style 28 fill:#00838f,stroke:#005b64,color:#ffffff
+        29("<div style='font-weight: bold'>node_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary · systemd]</div><div style='font-size: 80%; margin-top:10px'>Host metrics (every VM)</div>")
+        style 29 fill:#00838f,stroke:#005b64,color:#ffffff
+        30("<div style='font-weight: bold'>Promtail</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go binary · systemd]</div><div style='font-size: 80%; margin-top:10px'>Log shipper (every VM)</div>")
+        style 30 fill:#00838f,stroke:#005b64,color:#ffffff
+        31["<div style='font-weight: bold'>postgres_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prometheuscommunity/postgres-exporter]</div><div style='font-size: 80%; margin-top:10px'>Postgres metrics</div>"]
+        style 31 fill:#00838f,stroke:#005b64,color:#ffffff
+        32["<div style='font-weight: bold'>redis_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: oliver006/redis_exporter]</div><div style='font-size: 80%; margin-top:10px'>Redis metrics</div>"]
+        style 32 fill:#00838f,stroke:#005b64,color:#ffffff
+        33["<div style='font-weight: bold'>nginx_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: nginx/nginx-prometheus-exporter]</div><div style='font-size: 80%; margin-top:10px'>nginx stub_status metrics</div>"]
+        style 33 fill:#00838f,stroke:#005b64,color:#ffffff
+      end
+
+    end
+
+    1-. "<div>Reviews dashboards and<br />queries logs</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->25
+    1-. "<div>Ad-hoc PromQL queries</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->24
+    1-. "<div>Reviews and silences alerts</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->27
+    1-. "<div>Receives push notifications<br />on phone</div><div style='font-size: 70%'>[HTTPS + ntfy app]</div>" .->28
+    8-. "<div>Proxies s3.lab.local,<br />minio.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->19
+    8-. "<div>Proxies grafana.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->25
+    8-. "<div>Proxies prom.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->24
+    8-. "<div>Proxies alerts.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->27
+    8-. "<div>Proxies ntfy.lab.local</div><div style='font-size: 70%'>[HTTPS]</div>" .->28
+    24-. "<div>Scrapes host metrics</div><div style='font-size: 70%'>[HTTP :9100]</div>" .->29
+    24-. "<div>Scrapes Postgres metrics</div><div style='font-size: 70%'>[HTTP :9187]</div>" .->31
+    24-. "<div>Scrapes Redis metrics</div><div style='font-size: 70%'>[HTTP :9121]</div>" .->32
+    24-. "<div>Scrapes nginx metrics</div><div style='font-size: 70%'>[HTTP :9113]</div>" .->33
+    24-. "<div>Scrapes<br />/minio/v2/metrics/cluster<br />(bearer token auth)</div><div style='font-size: 70%'>[HTTP :9000]</div>" .->19
+    24-. "<div>Sends firing alert events</div><div style='font-size: 70%'>[HTTP]</div>" .->27
+    27-. "<div>Webhook notifications<br />(lab-alerts topic)</div><div style='font-size: 70%'>[HTTP]</div>" .->28
+    30-. "<div>Pushes logs (journald + files<br />+ Docker)</div><div style='font-size: 70%'>[HTTP /loki/api/v1/push]</div>" .->26
+    25-. "<div>Queries metrics</div><div style='font-size: 70%'>[HTTP]</div>" .->24
+    25-. "<div>Queries logs</div><div style='font-size: 70%'>[LogQL HTTP]</div>" .->26
+    31-. "<div>Reads pg_stat_* via<br />pg_monitor role</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    32-. "<div>Reads INFO + per-key stats</div><div style='font-size: 70%'>[RESP TCP 6379]</div>" .->20
+    33-. "<div>Reads /stub_status</div><div style='font-size: 70%'>[HTTP]</div>" .->8
+
+  end

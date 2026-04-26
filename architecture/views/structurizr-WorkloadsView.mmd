@@ -1,0 +1,68 @@
+graph TB
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Container View: Home Lab"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>Operator</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Admin and primary user of the<br />lab</div>"]
+    style 1 fill:#1168bd,stroke:#0b4884,color:#ffffff
+
+    subgraph 5 ["Home Lab"]
+      style 5 fill:#ffffff,stroke:#052e56,color:#052e56
+
+      subgraph group1 ["Application layer"]
+        style group1 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        10["<div style='font-weight: bold'>Platform tools</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>IaC + templating sandbox<br />(planned)</div>"]
+        style 10 fill:#90caf9,stroke:#648dae,color:#0d47a1
+        11["<div style='font-weight: bold'>Model serving</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>ML inference endpoint<br />(planned)</div>"]
+        style 11 fill:#90caf9,stroke:#648dae,color:#0d47a1
+        12["<div style='font-weight: bold'>Structurizr site</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: ghcr.io/avisi-cloud/structurizr-site-generatr]</div><div style='font-size: 80%; margin-top:10px'>Static C4 site at<br />arch.lab.local</div>"]
+        style 12 fill:#1976d2,stroke:#115293,color:#ffffff
+        13["<div style='font-weight: bold'>code-server</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: codercom/code-server]</div><div style='font-size: 80%; margin-top:10px'>Browser VS Code at<br />code.lab.local; Funnel for<br />public access</div>"]
+        style 13 fill:#1976d2,stroke:#115293,color:#ffffff
+        14["<div style='font-weight: bold'>Vaultwarden</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: vaultwarden/server]</div><div style='font-size: 80%; margin-top:10px'>Bitwarden-compatible vault at<br />vault.lab.local.<br />Postgres-backed.</div>"]
+        style 14 fill:#1976d2,stroke:#115293,color:#ffffff
+        9["<div style='font-weight: bold'>Workflow runner</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>Scheduled jobs + CI (planned)</div>"]
+        style 9 fill:#90caf9,stroke:#648dae,color:#0d47a1
+      end
+
+      subgraph group2 ["Data layer"]
+        style group2 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        18["<div style='font-weight: bold'>PostgreSQL</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: pgvector/pgvector:0.8.0-pg16]</div><div style='font-size: 80%; margin-top:10px'>OLTP + pgvector. One DB per<br />app.</div>"]
+        style 18 fill:#2e7d32,stroke:#205723,color:#ffffff
+        19["<div style='font-weight: bold'>MinIO</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: minio/minio]</div><div style='font-size: 80%; margin-top:10px'>S3 storage at s3.lab.local +<br />console at minio.lab.local</div>"]
+        style 19 fill:#2e7d32,stroke:#205723,color:#ffffff
+        20["<div style='font-weight: bold'>Redis</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: redis:7-alpine]</div><div style='font-size: 80%; margin-top:10px'>Cache + queue. AOF + LRU at<br />256 MB.</div>"]
+        style 20 fill:#2e7d32,stroke:#205723,color:#ffffff
+      end
+
+      subgraph group3 ["Platform layer"]
+        style group3 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        15("<div style='font-weight: bold'>k3s server</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34 · systemd]</div><div style='font-size: 80%; margin-top:10px'>API + scheduler + embedded<br />SQLite. Traefik off.</div>")
+        style 15 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
+        16("<div style='font-weight: bold'>k3s agent (node01)</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34 · systemd]</div><div style='font-size: 80%; margin-top:10px'>kubelet + containerd</div>")
+        style 16 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
+        17("<div style='font-weight: bold'>k3s agent (node02)</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34 · systemd]</div><div style='font-size: 80%; margin-top:10px'>kubelet + containerd</div>")
+        style 17 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
+      end
+
+    end
+
+    1-. "<div>Views lab architecture</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->12
+    1-. "<div>Edits, ssh/kubectl into lab<br />via browser</div><div style='font-size: 70%'>[HTTPS browser]</div>" .->13
+    1-. "<div>Stores/retrieves lab<br />credentials</div><div style='font-size: 70%'>[HTTPS + Bitwarden clients]</div>" .->14
+    15-. "<div>Schedules pods</div><div style='font-size: 70%'>[HTTPS 10250]</div>" .->16
+    15-. "<div>Schedules pods</div><div style='font-size: 70%'>[HTTPS 10250]</div>" .->17
+    9-. "<div>Job state</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    9-. "<div>Artifacts</div><div style='font-size: 70%'>[S3]</div>" .->19
+    9-. "<div>Queue + rate limiting</div><div style='font-size: 70%'>[RESP TCP 6379]</div>" .->20
+    11-. "<div>Model artifacts + inference<br />logs</div><div style='font-size: 70%'>[S3]</div>" .->19
+    11-. "<div>Request + result metadata</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    14-. "<div>Encrypted vault blobs</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    10-. "<div>Applies manifests</div><div style='font-size: 70%'>[kubectl/API 6443]</div>" .->15
+    9-. "<div>Deploys workloads</div><div style='font-size: 70%'>[kubectl/API 6443]</div>" .->15
+
+  end

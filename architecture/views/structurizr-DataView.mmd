@@ -1,0 +1,56 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Container View: Home Lab"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    subgraph 5 ["Home Lab"]
+      style 5 fill:#ffffff,stroke:#052e56,color:#052e56
+
+      subgraph group1 ["Application layer"]
+        style group1 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        11["<div style='font-weight: bold'>Model serving</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>ML inference endpoint<br />(planned)</div>"]
+        style 11 fill:#90caf9,stroke:#648dae,color:#0d47a1
+        14["<div style='font-weight: bold'>Vaultwarden</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: vaultwarden/server]</div><div style='font-size: 80%; margin-top:10px'>Bitwarden-compatible vault at<br />vault.lab.local.<br />Postgres-backed.</div>"]
+        style 14 fill:#1976d2,stroke:#115293,color:#ffffff
+        9["<div style='font-weight: bold'>Workflow runner</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>Scheduled jobs + CI (planned)</div>"]
+        style 9 fill:#90caf9,stroke:#648dae,color:#0d47a1
+      end
+
+      subgraph group2 ["Data layer"]
+        style group2 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        18["<div style='font-weight: bold'>PostgreSQL</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: pgvector/pgvector:0.8.0-pg16]</div><div style='font-size: 80%; margin-top:10px'>OLTP + pgvector. One DB per<br />app.</div>"]
+        style 18 fill:#2e7d32,stroke:#205723,color:#ffffff
+        19["<div style='font-weight: bold'>MinIO</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: minio/minio]</div><div style='font-size: 80%; margin-top:10px'>S3 storage at s3.lab.local +<br />console at minio.lab.local</div>"]
+        style 19 fill:#2e7d32,stroke:#205723,color:#ffffff
+        20["<div style='font-weight: bold'>Redis</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: redis:7-alpine]</div><div style='font-size: 80%; margin-top:10px'>Cache + queue. AOF + LRU at<br />256 MB.</div>"]
+        style 20 fill:#2e7d32,stroke:#205723,color:#ffffff
+        21["<div style='font-weight: bold'>restic</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: restic/restic]</div><div style='font-size: 80%; margin-top:10px'>Encrypted backups to MinIO +<br />offsite (planned)</div>"]
+        style 21 fill:#a5d6a7,stroke:#739574,color:#1b5e20
+      end
+
+      subgraph group3 ["Observability layer (cross-cutting)"]
+        style group3 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+
+        31["<div style='font-weight: bold'>postgres_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prometheuscommunity/postgres-exporter]</div><div style='font-size: 80%; margin-top:10px'>Postgres metrics</div>"]
+        style 31 fill:#00838f,stroke:#005b64,color:#ffffff
+        32["<div style='font-weight: bold'>redis_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: oliver006/redis_exporter]</div><div style='font-size: 80%; margin-top:10px'>Redis metrics</div>"]
+        style 32 fill:#00838f,stroke:#005b64,color:#ffffff
+      end
+
+    end
+
+    9-. "<div>Job state</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    9-. "<div>Artifacts</div><div style='font-size: 70%'>[S3]</div>" .->19
+    9-. "<div>Queue + rate limiting</div><div style='font-size: 70%'>[RESP TCP 6379]</div>" .->20
+    11-. "<div>Model artifacts + inference<br />logs</div><div style='font-size: 70%'>[S3]</div>" .->19
+    11-. "<div>Request + result metadata</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    14-. "<div>Encrypted vault blobs</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    31-. "<div>Reads pg_stat_* via<br />pg_monitor role</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    32-. "<div>Reads INFO + per-key stats</div><div style='font-size: 70%'>[RESP TCP 6379]</div>" .->20
+    21-. "<div>Reads pg_dump snapshots</div><div style='font-size: 70%'>[TCP 5432]</div>" .->18
+    21-. "<div>Backup repository</div><div style='font-size: 70%'>[S3]</div>" .->19
+
+  end

@@ -50,103 +50,103 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
         homeLab = softwareSystem "Home Lab" "Seven-VM Ubuntu cluster on Hyper-V. Lab subnet 192.168.100.0/24, isolated behind NAT." {
 
             group "Edge and Access layer" {
-                tailscale = container "Tailscale" "Subnet router (192.168.100.0/24 into tailnet) + Tailscale SSH + Funnel for work-PC access" "Go · systemd" {
+                tailscale = container "Tailscale" "Subnet router + SSH + Funnel" "Go · systemd" {
                     tags "EdgeNative"
                 }
-                coredns = container "CoreDNS" "Authoritative for *.lab.local, forwards the rest upstream, served via Tailscale Split DNS" "Docker: coredns/coredns:1.11.3" {
+                coredns = container "CoreDNS" "Authoritative *.lab.local + Split DNS" "Docker: coredns/coredns" {
                     tags "EdgeDocker"
                 }
-                nginx = container "nginx" "Reverse proxy. Dispatches *.lab.local by Host header. Serves TLS with lab CA wildcard cert." "Docker: nginx:1.27-alpine" {
+                nginx = container "nginx" "Reverse proxy. Routes *.lab.local by Host header. Wildcard TLS." "Docker: nginx:1.27-alpine" {
                     tags "EdgeDocker"
                 }
             }
 
             group "Application layer" {
-                workflows = container "Workflow runner" "Scheduled jobs, CI agents, operational automation (planned)" "Docker (TBD)" {
+                workflows = container "Workflow runner" "Scheduled jobs + CI (planned)" "Docker (TBD)" {
                     tags "AppPlanned"
                 }
-                devtools = container "Platform tools" "IaC runners, templating, internal CLI sandbox (planned)" "Docker (TBD)" {
+                devtools = container "Platform tools" "IaC + templating sandbox (planned)" "Docker (TBD)" {
                     tags "AppPlanned"
                 }
-                modelServer = container "Model serving" "AI/ML model inference endpoint (planned)" "Docker (TBD)" {
+                modelServer = container "Model serving" "ML inference endpoint (planned)" "Docker (TBD)" {
                     tags "AppPlanned"
                 }
-                structurizr = container "Structurizr site" "Static site rendered from this workspace.dsl; makes the architecture diagrams available at arch.lab.local" "Docker: ghcr.io/avisi-cloud/structurizr-site-generatr" {
+                structurizr = container "Structurizr site" "Static C4 site at arch.lab.local" "Docker: ghcr.io/avisi-cloud/structurizr-site-generatr" {
                     tags "AppDocker"
                 }
-                codeServer = container "code-server" "Browser VS Code. Internal at code.lab.local; public via Tailscale Funnel for work-PC use." "Docker: codercom/code-server:4.95.3" {
+                codeServer = container "code-server" "Browser VS Code at code.lab.local; Funnel for public access" "Docker: codercom/code-server" {
                     tags "AppDocker"
                 }
-                vaultwarden = container "Vaultwarden" "Self-hosted Bitwarden-compatible password manager. HTTPS at vault.lab.local. Postgres-backed." "Docker: vaultwarden/server:1.35.7" {
+                vaultwarden = container "Vaultwarden" "Bitwarden-compatible vault at vault.lab.local. Postgres-backed." "Docker: vaultwarden/server" {
                     tags "AppDocker"
                 }
             }
 
             group "Platform layer" {
-                k3sServer = container "k3s server" "Kubernetes API, scheduler, controller-manager, embedded SQLite. Traefik disabled (nginx owns ingress)." "k3s v1.34.6 · systemd" {
+                k3sServer = container "k3s server" "API + scheduler + embedded SQLite. Traefik off." "k3s v1.34 · systemd" {
                     tags "PlatformNative"
                 }
-                k3sAgent01 = container "k3s agent (node01)" "kubelet + containerd, hosts workload pods" "k3s v1.34.6 · systemd" {
+                k3sAgent01 = container "k3s agent (node01)" "kubelet + containerd" "k3s v1.34 · systemd" {
                     tags "PlatformNative"
                 }
-                k3sAgent02 = container "k3s agent (node02)" "kubelet + containerd, hosts workload pods" "k3s v1.34.6 · systemd" {
+                k3sAgent02 = container "k3s agent (node02)" "kubelet + containerd" "k3s v1.34 · systemd" {
                     tags "PlatformNative"
                 }
             }
 
             group "Data layer" {
-                postgres = container "PostgreSQL" "Primary OLTP store, one logical database per app. pgvector 0.8.0 extension available." "Docker: pgvector/pgvector:0.8.0-pg16" {
+                postgres = container "PostgreSQL" "OLTP + pgvector. One DB per app." "Docker: pgvector/pgvector:0.8.0-pg16" {
                     tags "DataDocker"
                 }
-                minio = container "MinIO" "S3-compatible object storage. API at s3.lab.local, console at minio.lab.local." "Docker: minio/minio" {
+                minio = container "MinIO" "S3 storage at s3.lab.local + console at minio.lab.local" "Docker: minio/minio" {
                     tags "DataDocker"
                 }
-                redis = container "Redis" "In-memory cache + simple queue. AOF + LRU eviction at 256 MB." "Docker: redis:7-alpine" {
+                redis = container "Redis" "Cache + queue. AOF + LRU at 256 MB." "Docker: redis:7-alpine" {
                     tags "DataDocker"
                 }
-                restic = container "restic" "Encrypted backups of Postgres + critical volumes to MinIO and offsite (planned)" "Docker: restic/restic" {
+                restic = container "restic" "Encrypted backups to MinIO + offsite (planned)" "Docker: restic/restic" {
                     tags "DataPlanned"
                 }
             }
 
             group "Security layer (cross-cutting)" {
-                iptables = container "iptables NAT" "Masquerades lab egress from 192.168.100.0/24 through eth1 on the home network" "Kernel netfilter" {
+                iptables = container "iptables NAT" "Masquerades lab egress through eth1" "Kernel netfilter" {
                     tags "SecurityKernel"
                 }
-                ufw = container "ufw" "Per-host firewall policy on every VM. Default deny inbound, trust lab subnet and tailnet." "Kernel netfilter" {
+                ufw = container "ufw" "Per-host firewall. Default deny." "Kernel netfilter" {
                     tags "SecurityKernel"
                 }
             }
 
             group "Observability layer (cross-cutting)" {
-                prometheus = container "Prometheus" "Scrapes node, postgres, redis, nginx, MinIO, grafana, alertmanager, loki, ntfy. 30-day TSDB retention. Sends alert events to Alertmanager." "Docker: prom/prometheus:v2.55.1" {
+                prometheus = container "Prometheus" "Metrics TSDB. 30d retention." "Docker: prom/prometheus" {
                     tags "ObsDocker"
                 }
-                grafana = container "Grafana" "Dashboards over Prometheus and Loki. Provisioned data sources, six pre-loaded dashboards including custom Lab Overview." "Docker: grafana/grafana:11.3.0" {
+                grafana = container "Grafana" "Dashboards + Explore at grafana.lab.local" "Docker: grafana/grafana" {
                     tags "ObsDocker"
                 }
-                loki = container "Loki" "Log aggregation. Filesystem storage, 14-day retention, monolithic mode." "Docker: grafana/loki:3.4.1" {
+                loki = container "Loki" "Log aggregation. 14d retention." "Docker: grafana/loki" {
                     tags "ObsDocker"
                 }
-                alertmanager = container "Alertmanager" "Routes Prometheus alerts. Critical -> ntfy max priority, warning -> ntfy default, log receiver fallback." "Docker: prom/alertmanager:v0.27.0" {
+                alertmanager = container "Alertmanager" "Routes alerts to ntfy by severity" "Docker: prom/alertmanager" {
                     tags "ObsDocker"
                 }
-                ntfy = container "ntfy" "Self-hosted push notifications. Receives Alertmanager webhooks; phone (over tailnet) subscribes to lab-alerts topic." "Docker: binwiederhier/ntfy:v2.11.0" {
+                ntfy = container "ntfy" "Push notifications at ntfy.lab.local" "Docker: binwiederhier/ntfy" {
                     tags "ObsDocker"
                 }
-                nodeExporter = container "node_exporter" "Host metrics agent on every VM (CPU, memory, disk, network, systemd unit state). Bound to :9100." "Go binary v1.8.2 · systemd" {
+                nodeExporter = container "node_exporter" "Host metrics (every VM)" "Go binary · systemd" {
                     tags "ObsNative"
                 }
-                promtail = container "Promtail" "Log shipper on every VM. Tails journald, /var/log, nginx logs, Docker container logs. Pushes to Loki." "Go binary v3.4.1 · systemd" {
+                promtail = container "Promtail" "Log shipper (every VM)" "Go binary · systemd" {
                     tags "ObsNative"
                 }
-                postgresExporter = container "postgres_exporter" "Postgres metrics (pg_stat_*, replication, locks). Reads via pg_monitor role." "Docker: prometheuscommunity/postgres-exporter:v0.16.0" {
+                postgresExporter = container "postgres_exporter" "Postgres metrics" "Docker: prometheuscommunity/postgres-exporter" {
                     tags "ObsDocker"
                 }
-                redisExporter = container "redis_exporter" "Redis metrics (memory, ops/sec, evictions, slow log)." "Docker: oliver006/redis_exporter:v1.66.0" {
+                redisExporter = container "redis_exporter" "Redis metrics" "Docker: oliver006/redis_exporter" {
                     tags "ObsDocker"
                 }
-                nginxExporter = container "nginx_exporter" "nginx connection metrics scraped from internal stub_status endpoint." "Docker: nginx/nginx-prometheus-exporter:1.3.0" {
+                nginxExporter = container "nginx_exporter" "nginx stub_status metrics" "Docker: nginx/nginx-prometheus-exporter" {
                     tags "ObsDocker"
                 }
             }
@@ -337,17 +337,89 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
 
         systemContext homeLab "SystemContext" "Who uses the lab and what it connects to externally" {
             include *
-            autoLayout lr 400 200
+            autoLayout lr 300 150
         }
 
-        container homeLab "Containers" "Layered architecture. Layer shown by color, runtime by shape (hexagon = Docker, rounded = native, tab = kernel)." {
+        container homeLab "Containers" "Layered architecture overview. Layer = color, runtime = shape." {
             include *
-            autoLayout tb 400 200
+            autoLayout tb 250 100
+        }
+
+        // ---- Focused per-layer container views -----------------------------
+        // Each view shows one layer plus its immediate neighbours, so each
+        // page renders ~6-10 nodes and stays readable.
+
+        container homeLab "EdgeView" "Edge layer detail: how traffic enters the lab and reaches services." {
+            include operator
+            include tailnet
+            include homeLab.tailscale
+            include homeLab.coredns
+            include homeLab.nginx
+            include homeLab.iptables
+            include homeLab.k3sServer
+            include homeLab.structurizr
+            include homeLab.codeServer
+            include homeLab.vaultwarden
+            include homeLab.minio
+            include homeLab.grafana
+            include homeLab.prometheus
+            include homeLab.alertmanager
+            include homeLab.ntfy
+            autoLayout lr 250 100
+        }
+
+        container homeLab "WorkloadsView" "Application + Platform layers: workloads and the orchestrator they run on." {
+            include operator
+            include homeLab.structurizr
+            include homeLab.codeServer
+            include homeLab.vaultwarden
+            include homeLab.workflows
+            include homeLab.devtools
+            include homeLab.modelServer
+            include homeLab.k3sServer
+            include homeLab.k3sAgent01
+            include homeLab.k3sAgent02
+            include homeLab.postgres
+            include homeLab.minio
+            include homeLab.redis
+            autoLayout tb 250 100
+        }
+
+        container homeLab "DataView" "Data layer detail: stateful stores and what depends on them." {
+            include homeLab.postgres
+            include homeLab.minio
+            include homeLab.redis
+            include homeLab.restic
+            include homeLab.vaultwarden
+            include homeLab.workflows
+            include homeLab.modelServer
+            include homeLab.postgresExporter
+            include homeLab.redisExporter
+            autoLayout lr 250 100
+        }
+
+        container homeLab "ObservabilityView" "Observability layer detail: scrape paths, log shipping, alert routing." {
+            include operator
+            include homeLab.prometheus
+            include homeLab.grafana
+            include homeLab.loki
+            include homeLab.alertmanager
+            include homeLab.ntfy
+            include homeLab.nodeExporter
+            include homeLab.promtail
+            include homeLab.postgresExporter
+            include homeLab.redisExporter
+            include homeLab.nginxExporter
+            include homeLab.minio
+            include homeLab.postgres
+            include homeLab.redis
+            include homeLab.nginx
+            autoLayout tb 250 100
         }
 
         deployment homeLab "Stage 1 (current)" "Stage1Deployment" "Infrastructure layer: where each container physically runs." {
             include *
-            autoLayout tb 400 200
+            autoLayout tb 300 100
         }
 
         styles {
