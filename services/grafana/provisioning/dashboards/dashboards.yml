@@ -1,0 +1,20 @@
+# =============================================================================
+# Grafana provisioned dashboards: file-based discovery
+# =============================================================================
+# Tells Grafana to look in /var/lib/grafana/dashboards/ for any .json file
+# and load it as a dashboard. Folder name in the UI is "Lab".
+# =============================================================================
+
+apiVersion: 1
+
+providers:
+  - name: lab-dashboards
+    orgId: 1
+    folder: Lab
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: true

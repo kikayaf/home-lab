@@ -1,0 +1,110 @@
+# =============================================================================
+# Service-level alert rules
+# =============================================================================
+# Postgres, Redis, nginx, MinIO, plus self-monitoring of Prometheus and
+# Alertmanager. Loaded by Prometheus via rule_files glob.
+# =============================================================================
+
+groups:
+
+  # ---------------------------------------------------------------------------
+  - name: service-availability
+    interval: 30s
+    rules:
+
+      - alert: PrometheusJobDown
+        # Any job that has at least one target down raises this. Excludes
+        # InstanceDown (covered separately for node) so we don't double-page.
+        expr: up{job!="node"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Scrape target {{ $labels.job }} on {{ $labels.host }} is down'
+          description: 'Prometheus has not been able to scrape {{ $labels.job }} on {{ $labels.host }} for 5 minutes.'
+
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Postgres on {{ $labels.host }} is unreachable'
+          description: 'postgres_exporter cannot connect to the Postgres instance on {{ $labels.host }}.'
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Redis on {{ $labels.host }} is unreachable'
+          description: 'redis_exporter cannot connect to the Redis instance on {{ $labels.host }}.'
+
+      - alert: NginxDown
+        expr: nginx_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'nginx on {{ $labels.host }} is unreachable'
+          description: 'nginx-prometheus-exporter cannot reach the stub_status endpoint on {{ $labels.host }}.'
+
+  # ---------------------------------------------------------------------------
+  - name: service-saturation
+    interval: 30s
+    rules:
+
+      - alert: PostgresTooManyConnections
+        # Trip when active connections climb above 80% of max_connections
+        expr: |
+          sum by (host) (pg_stat_activity_count) /
+          on (host) (pg_settings_max_connections) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Postgres connections > 80% of max on {{ $labels.host }}'
+          description: 'Active Postgres connections on {{ $labels.host }} have been over 80% of max_connections for 5 minutes.'
+
+      - alert: RedisMemoryHigh
+        # Redis is a 256 MB cache; tripping over 90% means eviction is heavy
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Redis memory > 90% of max on {{ $labels.host }}'
+          description: 'Redis memory usage on {{ $labels.host }} has been over 90% of maxmemory for 10 minutes. Eviction will be aggressive.'
+
+      - alert: MinIODriveOffline
+        expr: minio_cluster_drive_offline_total > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'MinIO has {{ $value }} offline drive(s)'
+          description: 'MinIO reports {{ $value }} drive(s) offline. Check `mc admin info lab` for details.'
+
+  # ---------------------------------------------------------------------------
+  - name: prometheus-self
+    interval: 1m
+    rules:
+
+      - alert: PrometheusConfigReloadFailed
+        expr: prometheus_config_last_reload_successful == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Prometheus config reload failed'
+          description: 'Last reload of /etc/prometheus/prometheus.yml failed. Check `docker logs prometheus`.'
+
+      - alert: AlertmanagerDown
+        expr: up{job="alertmanager"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Alertmanager is down'
+          description: 'Prometheus cannot reach Alertmanager. Alerts may not be routed.'

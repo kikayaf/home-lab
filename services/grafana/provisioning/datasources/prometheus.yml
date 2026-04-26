@@ -1,0 +1,27 @@
+# =============================================================================
+# Grafana provisioned data source: Prometheus
+# =============================================================================
+# Mounted at /etc/grafana/provisioning/datasources/prometheus.yml inside the
+# container. Grafana reads this on boot and creates / updates the data source
+# automatically. Source-controlled means re-deploys are reproducible.
+# =============================================================================
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    # UID matches the literal string we sed-replace ${DS_PROMETHEUS} with in
+    # imported community dashboards. Pinning it (instead of letting Grafana
+    # auto-generate a random UID) means dashboard JSON survives re-deploys.
+    uid: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: "15s"
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      prometheusVersion: "2.55.1"

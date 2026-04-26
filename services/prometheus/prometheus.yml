@@ -1,0 +1,128 @@
+# =============================================================================
+# Prometheus config for the home lab
+# =============================================================================
+# Source of truth for what Prometheus scrapes. Mounted at /etc/prometheus/
+# inside the container. Reload in-place with `docker exec prometheus
+# kill -HUP 1` after editing, or `docker restart prometheus` for major
+# changes.
+#
+# Convention: one job per exporter type. Each job lists every host running
+# that exporter. Labels carry the host short-name so dashboards can filter.
+# =============================================================================
+
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: home-lab
+    environment: lab
+
+# Alerting rules live alongside this file and get loaded automatically.
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+scrape_configs:
+
+  # ---------------------------------------------------------------------------
+  # Prometheus itself
+  # ---------------------------------------------------------------------------
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          host: lab-platform-eng
+
+  # ---------------------------------------------------------------------------
+  # Grafana metrics endpoint (Grafana ships /metrics natively)
+  # ---------------------------------------------------------------------------
+  - job_name: grafana
+    static_configs:
+      - targets: ['grafana:3000']
+        labels:
+          host: lab-platform-eng
+
+  # ---------------------------------------------------------------------------
+  # Alertmanager self-monitoring
+  # ---------------------------------------------------------------------------
+  - job_name: alertmanager
+    static_configs:
+      - targets: ['alertmanager:9093']
+        labels:
+          host: lab-platform-eng
+
+  # ---------------------------------------------------------------------------
+  # Loki self-monitoring
+  # ---------------------------------------------------------------------------
+  - job_name: loki
+    static_configs:
+      - targets: ['loki:3100']
+        labels:
+          host: lab-platform-eng
+
+  # ---------------------------------------------------------------------------
+  # node_exporter on every lab VM. Added in step 3.12.2.
+  # Each target binds to its lab IP, port 9100.
+  # ---------------------------------------------------------------------------
+  - job_name: node
+    static_configs:
+      - targets: ['192.168.100.201:9100']
+        labels: { host: lab-gateway }
+      - targets: ['192.168.100.202:9100']
+        labels: { host: lab-k3s-controlplane }
+      - targets: ['192.168.100.203:9100']
+        labels: { host: lab-k3s-node01 }
+      - targets: ['192.168.100.204:9100']
+        labels: { host: lab-k3s-node02 }
+      - targets: ['192.168.100.205:9100']
+        labels: { host: lab-datastore }
+      - targets: ['192.168.100.206:9100']
+        labels: { host: lab-ai-ops }
+      - targets: ['192.168.100.207:9100']
+        labels: { host: lab-automation }
+      - targets: ['192.168.100.208:9100']
+        labels: { host: lab-platform-eng }
+
+  # ---------------------------------------------------------------------------
+  # cAdvisor: deferred. cAdvisor 0.49 and 0.51 hardcode `image/overlayfs/` in
+  # the Docker layer-DB lookup, but modern Docker stores layers under
+  # `image/overlay2/`. The symlink workaround silenced the errors but the
+  # container scopes still don't surface as per-container series. For a lab
+  # this size, host-level metrics (node_exporter) plus per-service exporters
+  # cover the ground we actually need. See BACKLOG: "Per-container metrics".
+  # ---------------------------------------------------------------------------
+
+  # ---------------------------------------------------------------------------
+  # Service exporters. Added in step 3.12.5.
+  # ---------------------------------------------------------------------------
+  - job_name: postgres
+    static_configs:
+      - targets: ['192.168.100.205:9187']
+        labels: { host: lab-datastore, service: postgres }
+
+  - job_name: redis
+    static_configs:
+      - targets: ['192.168.100.205:9121']
+        labels: { host: lab-datastore, service: redis }
+
+  - job_name: nginx
+    static_configs:
+      - targets: ['192.168.100.201:9113']
+        labels: { host: lab-gateway, service: nginx }
+
+  # MinIO exposes Prometheus metrics natively. The bearer token is generated
+  # with `mc admin prometheus generate lab cluster` and stored in Vaultwarden.
+  # Hits MinIO directly at :9000 (not via nginx at s3.lab.local) because the
+  # nginx vhost proxies the S3 API but doesn't reliably pass through the
+  # Authorization header that the metrics endpoint needs.
+  - job_name: minio
+    metrics_path: /minio/v2/metrics/cluster
+    scheme: http
+    bearer_token_file: /etc/prometheus/secrets/minio_bearer_token
+    static_configs:
+      - targets: ['192.168.100.205:9000']
+        labels: { host: lab-datastore, service: minio }
