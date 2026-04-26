@@ -93,6 +93,14 @@ Get-ChildItem -Path $views -Filter '*.mmd' | ForEach-Object {
     $pendingGroup = $null
 
     foreach ($line in $lines) {
+        # Replace `graph TB` / `graph LR` with `flowchart-elk TB|LR` to force
+        # the ELK layout engine. More reliable than the init `defaultRenderer`
+        # hint, which some Mermaid integrations ignore.
+        if ($line -match '^graph\s+(TB|LR|TD|BT|RL)\b') {
+            $output.Add("flowchart-elk $($matches[1])")
+            continue
+        }
+
         # Detect: `      subgraph groupN ["Label"]`
         if ($line -match '^(\s*)subgraph\s+(group\d+)\s+\["(.+?)"\]') {
             $output.Add($line)
