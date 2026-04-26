@@ -52,6 +52,32 @@ scp "${remote}:/tmp/structurizr-export/*.mmd" "$views\"
 Write-Host "==> Cleaning up remote temp dir"
 ssh $remote 'rm -rf /tmp/structurizr-export'
 
+Write-Host "==> Injecting Mermaid init block (ELK layout + tighter spacing)"
+# Mermaid init directive: prepended to every .mmd. Sets:
+#   - ELK layout engine (much better than default dagre for layered graphs;
+#     supported by Mermaid 10.4+ which GitHub renders with).
+#   - Smaller font and tighter rank/node spacing for narrow web columns.
+#   - Curve style for cleaner edges.
+$initBlock = @"
+%%{init: {
+  "theme": "default",
+  "themeVariables": {"fontSize": "12px", "fontFamily": "arial"},
+  "flowchart": {
+    "defaultRenderer": "elk",
+    "rankSpacing": 50,
+    "nodeSpacing": 30,
+    "padding": 8,
+    "curve": "basis"
+  }
+}}%%
+
+"@
+
+Get-ChildItem -Path $views -Filter '*.mmd' | ForEach-Object {
+    $body = Get-Content -LiteralPath $_.FullName -Raw
+    Set-Content -LiteralPath $_.FullName -Value ($initBlock + $body) -NoNewline
+}
+
 Write-Host ""
 Write-Host "Done. Generated views:"
 Get-ChildItem -Path $views -Filter '*.mmd' | ForEach-Object { Write-Host "  $($_.Name) ($([math]::Round($_.Length/1KB, 1)) KB)" }

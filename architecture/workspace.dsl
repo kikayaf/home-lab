@@ -365,7 +365,7 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
             include homeLab.prometheus
             include homeLab.alertmanager
             include homeLab.ntfy
-            autoLayout lr 250 100
+            autoLayout tb 200 80
         }
 
         container homeLab "WorkloadsView" "Application + Platform layers: workloads and the orchestrator they run on." {
@@ -395,7 +395,7 @@ workspace "Home Lab" "Layered Ubuntu/Hyper-V lab on a Windows host. Edge, applic
             include homeLab.modelServer
             include homeLab.postgresExporter
             include homeLab.redisExporter
-            autoLayout lr 250 100
+            autoLayout tb 200 80
         }
 
         container homeLab "ObservabilityView" "Observability layer detail: scrape paths, log shipping, alert routing." {
