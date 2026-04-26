@@ -22,7 +22,7 @@ graph TB
       style 5 fill:#ffffff,stroke:#052e56,color:#052e56
 
       subgraph group1 ["Data layer"]
-        style group1 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group1 fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
 
         18["<div style='font-weight: bold'>PostgreSQL</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: pgvector/pgvector:0.8.0-pg16]</div><div style='font-size: 80%; margin-top:10px'>OLTP + pgvector. One DB per<br />app.</div>"]
         style 18 fill:#2e7d32,stroke:#205723,color:#ffffff
@@ -33,14 +33,14 @@ graph TB
       end
 
       subgraph group2 ["Edge and Access layer"]
-        style group2 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group2 fill:#fff3e0,stroke:#f57c00,color:#bf360c,stroke-width:2px
 
         8["<div style='font-weight: bold'>nginx</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: nginx:1.27-alpine]</div><div style='font-size: 80%; margin-top:10px'>Reverse proxy. Routes<br />*.lab.local by Host header.<br />Wildcard TLS.</div>"]
         style 8 fill:#f57c00,stroke:#ab5600,color:#ffffff
       end
 
       subgraph group3 ["Observability layer (cross-cutting)"]
-        style group3 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group3 fill:#e0f7fa,stroke:#00838f,color:#006064,stroke-width:2px
 
         24["<div style='font-weight: bold'>Prometheus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prom/prometheus]</div><div style='font-size: 80%; margin-top:10px'>Metrics TSDB. 30d retention.</div>"]
         style 24 fill:#00838f,stroke:#005b64,color:#ffffff

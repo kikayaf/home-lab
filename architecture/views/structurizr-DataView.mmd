@@ -19,7 +19,7 @@ graph TB
       style 5 fill:#ffffff,stroke:#052e56,color:#052e56
 
       subgraph group1 ["Application layer"]
-        style group1 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group1 fill:#e3f2fd,stroke:#1976d2,color:#0d47a1,stroke-width:2px
 
         11["<div style='font-weight: bold'>Model serving</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker (TBD)]</div><div style='font-size: 80%; margin-top:10px'>ML inference endpoint<br />(planned)</div>"]
         style 11 fill:#90caf9,stroke:#648dae,color:#0d47a1
@@ -30,7 +30,7 @@ graph TB
       end
 
       subgraph group2 ["Data layer"]
-        style group2 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group2 fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
 
         18["<div style='font-weight: bold'>PostgreSQL</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: pgvector/pgvector:0.8.0-pg16]</div><div style='font-size: 80%; margin-top:10px'>OLTP + pgvector. One DB per<br />app.</div>"]
         style 18 fill:#2e7d32,stroke:#205723,color:#ffffff
@@ -43,7 +43,7 @@ graph TB
       end
 
       subgraph group3 ["Observability layer (cross-cutting)"]
-        style group3 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group3 fill:#e0f7fa,stroke:#00838f,color:#006064,stroke-width:2px
 
         31["<div style='font-weight: bold'>postgres_exporter</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prometheuscommunity/postgres-exporter]</div><div style='font-size: 80%; margin-top:10px'>Postgres metrics</div>"]
         style 31 fill:#00838f,stroke:#005b64,color:#ffffff

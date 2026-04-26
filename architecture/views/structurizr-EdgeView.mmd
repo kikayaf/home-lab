@@ -24,7 +24,7 @@ graph TB
       style 5 fill:#ffffff,stroke:#052e56,color:#052e56
 
       subgraph group1 ["Application layer"]
-        style group1 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group1 fill:#e3f2fd,stroke:#1976d2,color:#0d47a1,stroke-width:2px
 
         12["<div style='font-weight: bold'>Structurizr site</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: ghcr.io/avisi-cloud/structurizr-site-generatr]</div><div style='font-size: 80%; margin-top:10px'>Static C4 site at<br />arch.lab.local</div>"]
         style 12 fill:#1976d2,stroke:#115293,color:#ffffff
@@ -35,14 +35,14 @@ graph TB
       end
 
       subgraph group2 ["Data layer"]
-        style group2 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group2 fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
 
         19["<div style='font-weight: bold'>MinIO</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: minio/minio]</div><div style='font-size: 80%; margin-top:10px'>S3 storage at s3.lab.local +<br />console at minio.lab.local</div>"]
         style 19 fill:#2e7d32,stroke:#205723,color:#ffffff
       end
 
       subgraph group3 ["Edge and Access layer"]
-        style group3 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group3 fill:#fff3e0,stroke:#f57c00,color:#bf360c,stroke-width:2px
 
         6("<div style='font-weight: bold'>Tailscale</div><div style='font-size: 70%; margin-top: 0px'>[Container: Go · systemd]</div><div style='font-size: 80%; margin-top:10px'>Subnet router + SSH + Funnel</div>")
         style 6 fill:#f57c00,stroke:#ab5600,color:#ffffff
@@ -53,7 +53,7 @@ graph TB
       end
 
       subgraph group4 ["Observability layer (cross-cutting)"]
-        style group4 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group4 fill:#e0f7fa,stroke:#00838f,color:#006064,stroke-width:2px
 
         24["<div style='font-weight: bold'>Prometheus</div><div style='font-size: 70%; margin-top: 0px'>[Container: Docker: prom/prometheus]</div><div style='font-size: 80%; margin-top:10px'>Metrics TSDB. 30d retention.</div>"]
         style 24 fill:#00838f,stroke:#005b64,color:#ffffff
@@ -66,14 +66,14 @@ graph TB
       end
 
       subgraph group5 ["Platform layer"]
-        style group5 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group5 fill:#f3e5f5,stroke:#6a1b9a,color:#4a148c,stroke-width:2px
 
         15("<div style='font-weight: bold'>k3s server</div><div style='font-size: 70%; margin-top: 0px'>[Container: k3s v1.34 · systemd]</div><div style='font-size: 80%; margin-top:10px'>API + scheduler + embedded<br />SQLite. Traefik off.</div>")
         style 15 fill:#6a1b9a,stroke:#4a126b,color:#ffffff
       end
 
       subgraph group6 ["Security layer (cross-cutting)"]
-        style group6 fill:#ffffff,stroke:#cccccc,color:#cccccc,stroke-dasharray:5
+        style group6 fill:#ffebee,stroke:#c62828,color:#b71c1c,stroke-width:2px
 
         22["<div style='font-weight: bold'>iptables NAT</div><div style='font-size: 70%; margin-top: 0px'>[Container: Kernel netfilter]</div><div style='font-size: 80%; margin-top:10px'>Masquerades lab egress<br />through eth1</div>"]
         style 22 fill:#c62828,stroke:#8a1c1c,color:#ffffff
