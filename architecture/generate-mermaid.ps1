@@ -91,6 +91,8 @@ $layerStyles = @{
 }
 
 Get-ChildItem -Path $views -Filter '*.mmd' | ForEach-Object {
+    $isContainers = ($_.Name -eq 'structurizr-Containers.mmd')
+
     $lines = Get-Content -LiteralPath $_.FullName
     $output = New-Object System.Collections.Generic.List[string]
     $pendingGroup = $null
@@ -125,6 +127,27 @@ Get-ChildItem -Path $views -Filter '*.mmd' | ForEach-Object {
                 $output.Add($line)
             }
             $pendingGroup = $null
+            continue
+        }
+
+        # Containers-only post-processing: strip the verbose edge label HTML
+        # down to just the tech (port/protocol). Edge format Structurizr
+        # emits:
+        #   1-. "<div>Connects remotely via</div><div style='font-size: 70%'>[Tailscale client]</div>" .->4
+        # We rewrite to:
+        #   1-. "Tailscale client" .->4
+        if ($isContainers -and $line -match '^(\s*\d+-\.\s+)".*?\[(.+?)\]</div>"\s+(\.->\d+)\s*$') {
+            $prefix = $matches[1]
+            $tech   = $matches[2]
+            $arrow  = $matches[3]
+            $output.Add("$prefix`"$tech`" $arrow")
+            continue
+        }
+
+        # Containers-only: bolder outer "Home Lab" subgraph. Default style:
+        #   style 5 fill:#ffffff,stroke:#052e56,color:#052e56
+        if ($isContainers -and $line -match '^(\s*)style\s+(\d+)\s+fill:#ffffff,stroke:#052e56') {
+            $output.Add("$($matches[1])style $($matches[2]) fill:#fafafa,stroke:#052e56,color:#052e56,stroke-width:3px")
             continue
         }
 
